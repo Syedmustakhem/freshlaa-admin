@@ -4,8 +4,13 @@ import api from "../services/api";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
+
   const [name, setName] = useState("");
-  const [imageUrls, setImageUrls] = useState(""); // comma-separated URLs
+  const [img1, setImg1] = useState("");
+  const [img2, setImg2] = useState("");
+  const [img3, setImg3] = useState("");
+  const [img4, setImg4] = useState("");
+  const [more, setMore] = useState("");
 
   /* ---------------- FETCH CATEGORIES ---------------- */
 
@@ -30,22 +35,28 @@ export default function Categories() {
       return;
     }
 
-    if (!imageUrls.trim()) {
-      alert("Please paste at least one Cloudinary image URL");
+    if (!img1 || !img2 || !img3 || !img4) {
+      alert("Please add all 4 image URLs");
       return;
     }
 
     const payload = {
       name,
       slug: name.toLowerCase().trim().replace(/\s+/g, "-"),
-      images: imageUrls.split(",").map((url) => url.trim()),
+      images: [img1, img2, img3, img4],
+      more,
+      type: "shop_by_category", // 🔥 future-proof
       isActive: true,
     };
 
     try {
       await api.post("/category", payload);
       setName("");
-      setImageUrls("");
+      setImg1("");
+      setImg2("");
+      setImg3("");
+      setImg4("");
+      setMore("");
       fetchCategories();
     } catch (err) {
       console.error("Failed to add category", err);
@@ -57,7 +68,7 @@ export default function Categories() {
 
   return (
     <AdminLayout>
-      <h3>Categories</h3>
+      <h3>Shop by Category</h3>
 
       <div className="card p-3 mb-4">
         <input
@@ -67,12 +78,39 @@ export default function Categories() {
           onChange={(e) => setName(e.target.value)}
         />
 
-        <textarea
+        <input
           className="form-control mb-2"
-          placeholder="Paste Cloudinary image URLs (comma separated)"
-          value={imageUrls}
-          onChange={(e) => setImageUrls(e.target.value)}
-          rows={3}
+          placeholder="Image URL 1"
+          value={img1}
+          onChange={(e) => setImg1(e.target.value)}
+        />
+
+        <input
+          className="form-control mb-2"
+          placeholder="Image URL 2"
+          value={img2}
+          onChange={(e) => setImg2(e.target.value)}
+        />
+
+        <input
+          className="form-control mb-2"
+          placeholder="Image URL 3"
+          value={img3}
+          onChange={(e) => setImg3(e.target.value)}
+        />
+
+        <input
+          className="form-control mb-2"
+          placeholder="Image URL 4"
+          value={img4}
+          onChange={(e) => setImg4(e.target.value)}
+        />
+
+        <input
+          className="form-control mb-3"
+          placeholder="More text (eg: +10 more)"
+          value={more}
+          onChange={(e) => setMore(e.target.value)}
         />
 
         <button className="btn btn-dark" onClick={addCategory}>
@@ -86,6 +124,7 @@ export default function Categories() {
             <th>#</th>
             <th>Name</th>
             <th>Images</th>
+            <th>More</th>
           </tr>
         </thead>
         <tbody>
@@ -94,12 +133,13 @@ export default function Categories() {
               <td>{i + 1}</td>
               <td>{c.name}</td>
               <td>{c.images?.length || 0}</td>
+              <td>{c.more}</td>
             </tr>
           ))}
 
           {categories.length === 0 && (
             <tr>
-              <td colSpan="3" className="text-center">
+              <td colSpan="4" className="text-center">
                 No categories found
               </td>
             </tr>
