@@ -13,9 +13,10 @@ export default function Categories() {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get("/category/admin/all", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/category", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+
       setCategories(res.data.data || []);
     } catch (err) {
       console.error("Failed to fetch categories", err);
