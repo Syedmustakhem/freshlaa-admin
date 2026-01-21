@@ -8,6 +8,7 @@ import Orders from "./pages/Orders";
 import Users from "./pages/Users";
 import Banners from "./pages/Banners";
 import AllOrders from "./pages/AllOrders";
+import Categories from "./pages/Categories";
 
 import UserDetails from "./pages/UserDetails";
 import UserOrders from "./pages/UserOrders";
@@ -37,6 +38,14 @@ export default function App() {
   element={
     <ProtectedRoute>
       <AllOrders />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/categories"
+  element={
+    <ProtectedRoute>
+      <Categories />
     </ProtectedRoute>
   }
 />
