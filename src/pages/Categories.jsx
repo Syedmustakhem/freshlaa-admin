@@ -5,19 +5,14 @@ import api from "../services/api";
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
-  const [images, setImages] = useState([]);
-
-  const token = localStorage.getItem("adminToken");
+  const [imageUrls, setImageUrls] = useState(""); // comma-separated URLs
 
   /* ---------------- FETCH CATEGORIES ---------------- */
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get("/category", {
-  headers: { Authorization: `Bearer ${token}` },
-});
-
-      setCategories(res.data.data || []);
+      const res = await api.get("/category");
+      setCategories(res.data || []);
     } catch (err) {
       console.error("Failed to fetch categories", err);
     }
@@ -35,56 +30,26 @@ export default function Categories() {
       return;
     }
 
-    if (images.length === 0) {
-      alert("Please select at least one image");
+    if (!imageUrls.trim()) {
+      alert("Please paste at least one Cloudinary image URL");
       return;
     }
 
-    if (images.length > 4) {
-      alert("Maximum 4 images allowed");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append(
-      "slug",
-      name.toLowerCase().trim().replace(/\s+/g, "-")
-    );
-
-    images.forEach((img) => {
-      formData.append("images", img);
-    });
+    const payload = {
+      name,
+      slug: name.toLowerCase().trim().replace(/\s+/g, "-"),
+      images: imageUrls.split(",").map((url) => url.trim()),
+      isActive: true,
+    };
 
     try {
-      await api.post("/category/admin", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
+      await api.post("/category", payload);
       setName("");
-      setImages([]);
+      setImageUrls("");
       fetchCategories();
     } catch (err) {
       console.error("Failed to add category", err);
       alert("Failed to add category");
-    }
-  };
-
-  /* ---------------- TOGGLE STATUS ---------------- */
-
-  const toggleStatus = async (cat) => {
-    try {
-      await api.put(
-        `/category/admin/${cat._id}`,
-        { isActive: !cat.isActive },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchCategories();
-    } catch (err) {
-      console.error("Failed to update status", err);
     }
   };
 
@@ -95,29 +60,22 @@ export default function Categories() {
       <h3>Categories</h3>
 
       <div className="card p-3 mb-4">
-        <div className="mb-2">
-          <input
-            className="form-control"
-            placeholder="Category name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
+        <input
+          className="form-control mb-2"
+          placeholder="Category name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-        <div className="mb-2">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            className="form-control"
-            onChange={(e) => setImages([...e.target.files])}
-          />
-          <small className="text-muted">
-            Upload 1–4 images
-          </small>
-        </div>
+        <textarea
+          className="form-control mb-2"
+          placeholder="Paste Cloudinary image URLs (comma separated)"
+          value={imageUrls}
+          onChange={(e) => setImageUrls(e.target.value)}
+          rows={3}
+        />
 
-        <button className="btn btn-dark mt-2" onClick={addCategory}>
+        <button className="btn btn-dark" onClick={addCategory}>
           Add Category
         </button>
       </div>
@@ -127,7 +85,7 @@ export default function Categories() {
           <tr>
             <th>#</th>
             <th>Name</th>
-            <th>Status</th>
+            <th>Images</th>
           </tr>
         </thead>
         <tbody>
@@ -135,16 +93,7 @@ export default function Categories() {
             <tr key={c._id}>
               <td>{i + 1}</td>
               <td>{c.name}</td>
-              <td>
-                <button
-                  className={`btn btn-sm ${
-                    c.isActive ? "btn-success" : "btn-danger"
-                  }`}
-                  onClick={() => toggleStatus(c)}
-                >
-                  {c.isActive ? "Active" : "Inactive"}
-                </button>
-              </td>
+              <td>{c.images?.length || 0}</td>
             </tr>
           ))}
 
