@@ -263,45 +263,42 @@ const saveNewProduct = async () => {
                   }
                 />
 
-         {/* ================= IMAGES ================= */}
-<h6 className="mt-3">Product Images</h6>
+                {/* Images */}
+                <h6 className="mt-3">Images</h6>
+                {editProduct.images?.map((img, i) => (
+                  <div className="d-flex mb-2" key={i}>
+                    <input
+                      className="form-control"
+                      value={img}
+                      onChange={(e) => {
+                        const imgs = [...editProduct.images];
+                        imgs[i] = e.target.value;
+                        setEditProduct({ ...editProduct, images: imgs });
+                      }}
+                    />
+                    <button
+                      className="btn btn-danger ms-2"
+                      onClick={() => {
+                        const imgs = editProduct.images.filter((_, idx) => idx !== i);
+                        setEditProduct({ ...editProduct, images: imgs });
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
 
-{newProduct.images.map((img, i) => (
-  <div className="d-flex mb-2" key={i}>
-    <input
-      className="form-control"
-      placeholder="Image URL"
-      value={img}
-      onChange={(e) => {
-        const imgs = [...newProduct.images];
-        imgs[i] = e.target.value;
-        setNewProduct({ ...newProduct, images: imgs });
-      }}
-    />
-    <button
-      className="btn btn-danger ms-2"
-      onClick={() => {
-        const imgs = newProduct.images.filter((_, idx) => idx !== i);
-        setNewProduct({ ...newProduct, images: imgs });
-      }}
-    >
-      ✕
-    </button>
-  </div>
-))}
-
-<button
-  className="btn btn-sm btn-outline-success mb-3"
-  onClick={() =>
-    setNewProduct({
-      ...newProduct,
-      images: [...newProduct.images, ""],
-    })
-  }
->
-  + Add Image
-</button>
-
+                <button
+                  className="btn btn-sm btn-outline-success"
+                  onClick={() =>
+                    setEditProduct({
+                      ...editProduct,
+                      images: [...(editProduct.images || []), ""],
+                    })
+                  }
+                >
+                  + Add Image
+                </button>
               </div>
 
               <div className="modal-footer">
@@ -431,6 +428,44 @@ const saveNewProduct = async () => {
               setNewProduct({ ...newProduct, description: e.target.value })
             }
           />
+{/* ================= ADD PRODUCT IMAGES ================= */}
+<h6 className="mt-3">Product Images</h6>
+
+{newProduct.images.map((img, i) => (
+  <div className="d-flex mb-2" key={i}>
+    <input
+      className="form-control"
+      placeholder="Image URL"
+      value={img}
+      onChange={(e) => {
+        const imgs = [...newProduct.images];
+        imgs[i] = e.target.value;
+        setNewProduct({ ...newProduct, images: imgs });
+      }}
+    />
+    <button
+      className="btn btn-danger ms-2"
+      onClick={() => {
+        const imgs = newProduct.images.filter((_, idx) => idx !== i);
+        setNewProduct({ ...newProduct, images: imgs });
+      }}
+    >
+      ✕
+    </button>
+  </div>
+))}
+
+<button
+  className="btn btn-sm btn-outline-success mb-3"
+  onClick={() =>
+    setNewProduct({
+      ...newProduct,
+      images: [...newProduct.images, ""],
+    })
+  }
+>
+  + Add Image
+</button>
 
           <h6>Variants</h6>
           {newProduct.variants.map((v, i) => (
