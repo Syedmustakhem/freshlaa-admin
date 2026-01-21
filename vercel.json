@@ -1,10 +1,19 @@
 {
   "routes": [
     {
-      "src": "^/(static|favicon.ico|manifest.json|icons|logo192.jpeg|logo512.jpeg)(/.*)?$",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      },
+      "src": "/static/(.*)",
+      "continue": true
+    },
+    {
+      "src": "/manifest.json",
+      "continue": true
+    },
+    {
+      "src": "/favicon.ico",
+      "continue": true
+    },
+    {
+      "src": "/icons/(.*)",
       "continue": true
     },
     {
