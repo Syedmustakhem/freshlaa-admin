@@ -1,24 +1,4 @@
 {
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "continue": true
-    },
-    {
-      "src": "/manifest.json",
-      "continue": true
-    },
-    {
-      "src": "/favicon.ico",
-      "continue": true
-    },
-    {
-      "src": "/icons/(.*)",
-      "continue": true
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "buildCommand": "npm run build",
+  "outputDirectory": "build"
 }
