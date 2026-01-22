@@ -1,7 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+
+// ✅ Bootstrap CSS
 import "bootstrap/dist/css/bootstrap.min.css";
+
+// ✅ IMPORT YOUR CUSTOM CSS (MISSING)
+import "./index.css";
 
 import * as serviceWorker from "./serviceWorker";
 
@@ -13,5 +18,5 @@ root.render(
   </React.StrictMode>
 );
 
-// ✅ REGISTER SERVICE WORKER (PWA)
+// ⚠️ TEMPORARILY DISABLE SERVICE WORKER
 serviceWorker.register();
