@@ -63,3 +63,91 @@ code {
 .timeline-step.active .dot {
   background: #198754;
 }
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background: #111827;
+  color: #fff;
+  padding: 20px;
+}
+
+.sidebar a {
+  color: #cbd5e1;
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background: #1f2937;
+  color: #fff;
+}
+
+.content {
+  flex: 1;
+  padding: 25px;
+}
+/* ================= GLOBAL ADMIN THEME ================= */
+
+body {
+  background-color: #f4f6f9;
+}
+
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.table th {
+  font-weight: 600;
+  color: #555;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.modal-content {
+  border-radius: 14px;
+}
+
+input,
+select,
+textarea {
+  border-radius: 8px !important;
+}
+
+h3,
+h5 {
+  font-weight: 600;
+}
+.table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+.price {
+  font-weight: 600;
+  color: #198754;
+}
+.modal-header {
+  border-bottom: none;
+}
+
+.modal-footer {
+  border-top: none;
+}
+
+.modal-title {
+  font-weight: 600;
+}
