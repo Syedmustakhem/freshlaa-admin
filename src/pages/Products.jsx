@@ -67,21 +67,35 @@ const [newProduct, setNewProduct] = useState({
   };
 
   /* ================= EDIT PRODUCT ================= */
-  const openEditProduct = (product) => {
-    setEditProduct(JSON.parse(JSON.stringify(product))); // deep clone
-  };
+ const openEditProduct = (product) => {
+  setEditProduct({
+    ...JSON.parse(JSON.stringify(product)),
+    variants: (product.variants || []).map(v => ({
+  ...v,
+  unit: v.unit || "kg",
+}))
+,
+  });
+};
 
   const saveEditProduct = async () => {
     try {
-      await api.put(
-        `/products/${editProduct._id}`,
-        editProduct,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        }
-      );
+    await api.put(
+  `/products/${editProduct._id}`,
+  {
+    ...editProduct,
+    variants: (editProduct.variants || []).map(v => ({
+      ...v,
+      unit: v.unit || "kg",
+    })),
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+    },
+  }
+);
+
       setEditProduct(null);
       fetchProducts();
     } catch {
@@ -114,17 +128,35 @@ const setNewDefaultVariant = (index) => {
 
 const saveNewProduct = async () => {
   try {
-    await api.post("/products/manual", newProduct, {
+    const payload = {
+      ...newProduct,
+      variants: newProduct.variants.map(v => ({
+        ...v,
+        unit: v.unit || "kg",   // FORCE unit
+      })),
+    };
+
+    await api.post("/products/manual", payload, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
       },
     });
+
     setShowAddModal(false);
+    setNewProduct({
+  name: "",
+  description: "",
+  category: "",
+  images: [],
+  variants: [{ ...emptyVariant }],
+});
+
     fetchProducts();
   } catch (err) {
     alert(err.response?.data?.message || "Failed to add product");
   }
 };
+
 
   /* ================= VARIANT HELPERS ================= */
   const updateVariantField = (index, field, value) => {
@@ -141,23 +173,35 @@ const saveNewProduct = async () => {
     setVariantProduct({ ...variantProduct, variants: updated });
   };
 
-  const saveVariants = async () => {
-    try {
-      await api.put(
-        `/products/${variantProduct._id}`,
-        { variants: variantProduct.variants },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        }
-      );
-      setVariantProduct(null);
-      fetchProducts();
-    } catch {
-      alert("Failed to save variants");
-    }
-  };
+const saveVariants = async () => {
+  try {
+    const payload = {
+      variants: (variantProduct.variants || []).map(v => ({
+        ...v,
+        unit: v.unit || "kg",
+      })),
+    };
+
+    await api.put(
+      `/products/${variantProduct._id}`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      }
+    );
+
+    setVariantProduct(null);
+    fetchProducts();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to save variants");
+  }
+};
+
+  
+
 
   return (
     <AdminLayout>
@@ -212,7 +256,13 @@ const saveNewProduct = async () => {
                   <button
                     className="btn btn-sm btn-outline-primary"
                     onClick={() =>
-                      setVariantProduct(JSON.parse(JSON.stringify(p)))
+setVariantProduct({
+  ...JSON.parse(JSON.stringify(p)),
+  variants: p.variants.map(v => ({
+    ...v,
+    unit: v.unit || "kg",
+  })),
+})
                     }
                   >
                     Variants
