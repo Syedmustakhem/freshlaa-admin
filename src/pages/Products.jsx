@@ -65,6 +65,22 @@ const [newProduct, setNewProduct] = useState({
       alert("Failed to update status");
     }
   };
+/* ================= DELETE PRODUCT ================= */
+const deleteProduct = async (productId) => {
+  if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+  try {
+    await api.delete(`/products/${productId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+      },
+    });
+
+    fetchProducts();
+  } catch (err) {
+    alert("Failed to delete product");
+  }
+};
 
   /* ================= EDIT PRODUCT ================= */
  const openEditProduct = (product) => {
@@ -236,38 +252,51 @@ const saveVariants = async () => {
                 <td>
                   ₹{p.variants?.find(v => v.isDefault)?.price || "-"}
                 </td>
-                <td>
-                  <button
-                    className={`btn btn-sm ${
-                      p.isActive ? "btn-success" : "btn-danger"
-                    }`}
-                    onClick={() => toggleStatus(p)}
-                  >
-                    {p.isActive ? "Active" : "Inactive"}
-                  </button>
-                </td>
-                <td>
-                  <button
-                    className="btn btn-sm btn-outline-dark me-2"
-                    onClick={() => openEditProduct(p)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() =>
-setVariantProduct({
-  ...JSON.parse(JSON.stringify(p)),
-  variants: p.variants.map(v => ({
-    ...v,
-    unit: v.unit || "kg",
-  })),
-})
-                    }
-                  >
-                    Variants
-                  </button>
-                </td>
+               <td>
+  {p.stock === 0 ? (
+    <span className="badge bg-secondary">Out of Stock</span>
+  ) : (
+    <button
+      className={`btn btn-sm ${
+        p.isActive ? "btn-success" : "btn-danger"
+      }`}
+      onClick={() => toggleStatus(p)}
+    >
+      {p.isActive ? "Active" : "Inactive"}
+    </button>
+  )}
+</td>
+<td>
+  <button
+    className="btn btn-sm btn-outline-dark me-2"
+    onClick={() => openEditProduct(p)}
+  >
+    Edit
+  </button>
+
+  <button
+    className="btn btn-sm btn-outline-primary me-2"
+    onClick={() =>
+      setVariantProduct({
+        ...JSON.parse(JSON.stringify(p)),
+        variants: p.variants.map(v => ({
+          ...v,
+          unit: v.unit || "kg",
+        })),
+      })
+    }
+  >
+    Variants
+  </button>
+
+  <button
+    className="btn btn-sm btn-outline-danger"
+    onClick={() => deleteProduct(p._id)}
+  >
+    Delete
+  </button>
+</td>
+
               </tr>
             ))}
           </tbody>
