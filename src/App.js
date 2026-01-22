@@ -4,7 +4,6 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Restaurants from "./pages/Restaurants";
 import Products from "./pages/Products";
-import Orders from "./pages/Orders";
 import Users from "./pages/Users";
 import Banners from "./pages/Banners";
 import AllOrders from "./pages/AllOrders";
@@ -33,22 +32,26 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-<Route
-  path="/orders"
-  element={
-    <ProtectedRoute>
-      <AllOrders />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/categories"
-  element={
-    <ProtectedRoute>
-      <Categories />
-    </ProtectedRoute>
-  }
-/>
+
+        {/* GLOBAL ORDERS (ALL USERS) */}
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <AllOrders />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* CATEGORIES */}
+        <Route
+          path="/categories"
+          element={
+            <ProtectedRoute>
+              <Categories />
+            </ProtectedRoute>
+          }
+        />
 
         {/* CORE MODULES */}
         <Route
@@ -70,15 +73,6 @@ export default function App() {
         />
 
         <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <Orders />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/users"
           element={
             <ProtectedRoute>
@@ -87,7 +81,7 @@ export default function App() {
           }
         />
 
-        {/* 🔥 USER MANAGEMENT (NEW) */}
+        {/* USER MANAGEMENT */}
         <Route
           path="/admin/users/:id"
           element={
