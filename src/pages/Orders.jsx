@@ -32,15 +32,12 @@ export default function Orders() {
 
   const updateStatus = async (orderId, status) => {
     try {
-      await api.patch(
-        "/admin/orders/status",
-        { orderId, status },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        }
-      );
+      api.patch(
+  "/orders/status",
+  { orderId, status },
+  { headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` } }
+);
+;
 
       // 🔥 realtime UI update
       setOrders(prev =>
