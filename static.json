@@ -1,5 +1,6 @@
 {
   "routes": {
+    "/static/*": "/static/:splat",
     "/**": "index.html"
   }
 }
