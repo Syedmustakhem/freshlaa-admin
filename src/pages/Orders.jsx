@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 import OrderDrawer from "../components/OrderDrawer";
+const STATUS_MAP = {
+  "Placed": "Placed",
+  "Packed": "Packed",
+  "Out for Delivery": "OutForDelivery",
+  "Delivered": "Delivered",
+};
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -78,8 +84,9 @@ export default function Orders() {
                     className="form-select form-select-sm"
                     value={o.status}
                     onChange={(e) =>
-                      updateStatus(o._id, e.target.value)
-                    }
+  updateStatus(o._id, STATUS_MAP[e.target.value])
+}
+
                   >
                     <option value="Placed">Placed</option>
                     <option value="Packed">Packed</option>
