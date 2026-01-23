@@ -48,9 +48,14 @@ export default function Orders() {
           o._id === orderId ? { ...o, status } : o
         )
       );
-    } catch {
-      alert("Failed to update status");
-    }
+    } catch (err) {
+  console.error("UPDATE STATUS ERROR:", err.response?.data || err.message);
+  alert(
+    err.response?.data?.message ||
+    "Failed to update status"
+  );
+}
+
   };
 
   return (
