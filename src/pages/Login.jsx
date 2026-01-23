@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { motion } from "framer-motion";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -25,8 +26,7 @@ export default function Login() {
       }
 
       localStorage.setItem("adminToken", token);
-
-      navigate("/products"); // ✅ CORRECT ROUTE
+      navigate("/products");
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
     } finally {
@@ -35,40 +35,83 @@ export default function Login() {
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center vh-100 bg-light">
-      <form
+    <div className="d-flex align-items-center justify-content-center vh-100 bg-gradient">
+      <motion.form
         onSubmit={handleLogin}
-        className="bg-white p-4 rounded shadow"
-        style={{ width: "350px" }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="bg-white p-4 rounded-4 shadow-lg"
+        style={{ width: "360px" }}
       >
-        <h4 className="mb-3 text-center">Admin Login</h4>
+        {/* LOGO / TITLE */}
+        <div className="text-center mb-4">
+          <div
+            className="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center mb-2"
+            style={{ width: 56, height: 56, fontSize: 24 }}
+          >
+            🛡️
+          </div>
+          <h4 className="fw-bold mb-1">Freshlaa Admin</h4>
+          <small className="text-muted">Secure admin access</small>
+        </div>
 
-        <input
-          type="email"
-          className="form-control mb-3"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        {/* EMAIL */}
+        <div className="form-floating mb-3">
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <label>Email</label>
+        </div>
 
-        <input
-          type="password"
-          className="form-control mb-3"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        {/* PASSWORD */}
+        <div className="form-floating mb-4">
+          <input
+            type="password"
+            className="form-control"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <label>Password</label>
+        </div>
 
-        <button
-          className="btn btn-dark w-100"
+        {/* BUTTON */}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.02 }}
+          className="btn btn-dark w-100 py-2 fw-bold"
           type="submit"
           disabled={loading}
         >
+          {loading ? (
+            <span className="spinner-border spinner-border-sm me-2" />
+          ) : null}
           {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+        </motion.button>
+
+        {/* FOOTER */}
+        <div className="text-center mt-3">
+          <small className="text-muted">
+            Authorized access only
+          </small>
+        </div>
+      </motion.form>
+
+      {/* BACKGROUND STYLE */}
+      <style>
+        {`
+          .bg-gradient {
+            background: linear-gradient(135deg, #111827, #1f2933);
+          }
+        `}
+      </style>
     </div>
   );
 }
