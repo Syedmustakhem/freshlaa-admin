@@ -6,7 +6,6 @@ import api from "../services/api";
 const statusColor = (status) => {
   switch (status) {
     case "Placed": return "secondary";
-    case "Confirmed": return "primary";
     case "Packed": return "warning";
     case "OutForDelivery": return "info";
     case "Delivered": return "success";
@@ -113,7 +112,6 @@ export default function AllOrders() {
                       }
                     >
                       <option>Placed</option>
-                      <option>Confirmed</option>
                       <option>Packed</option>
                       <option>OutForDelivery</option>
                       <option>Delivered</option>
