@@ -60,6 +60,33 @@ export default function Orders() {
     "Failed to update status"
   );
 }
+const playSound = () => {
+  const audio = new Audio("/notification.mp3");
+  audio.play().catch(() => {});
+};
+useEffect(() => {
+  // 🔔 NEW ORDER
+  socket.on("new-order", (order) => {
+    setOrders((prev) => [order, ...prev]);
+    playSound();
+  });
+
+  // 🔄 STATUS UPDATE
+  socket.on("order-updated", ({ orderId, status }) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o._id === orderId ? { ...o, status } : o
+      )
+    );
+  });
+
+  return () => {
+    socket.off("new-order");
+    socket.off("order-updated");
+  };
+}, []);
+
+
 
   };
 
