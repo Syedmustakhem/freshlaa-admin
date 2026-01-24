@@ -2,15 +2,13 @@ import { useEffect, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 import OrderDrawer from "../components/OrderDrawer";
-import { useEffect, useState } from "react";
 import socket from "../socket";
 
-
 const STATUS_MAP = {
-  "Placed": "Placed",
-  "Packed": "Packed",
+  Placed: "Placed",
+  Packed: "Packed",
   "Out for Delivery": "OutForDelivery",
-  "Delivered": "Delivered",
+  Delivered: "Delivered",
 };
 
 export default function Orders() {
@@ -19,75 +17,73 @@ export default function Orders() {
 
   const fetchOrders = async () => {
     try {
-      const res = await api.get("/admin/orders", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      });
+      const res = await api.get("/admin/orders");
       setOrders(res.data.data || []);
     } catch {
       alert("Failed to load orders");
     }
   };
 
+  // 🔊 SOUND (browser-safe)
+  const playSound = () => {
+    if (!window.__soundEnabled) return;
+    const audio = new Audio("/notification.mp3");
+    audio.play().catch(() => {});
+  };
+
+  // ✅ INITIAL LOAD
   useEffect(() => {
     fetchOrders();
+
+    const enableSound = () => {
+      window.__soundEnabled = true;
+      document.removeEventListener("click", enableSound);
+    };
+    document.addEventListener("click", enableSound);
   }, []);
 
+  // 🔥 SOCKET LISTENERS (TOP LEVEL)
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("🟢 Admin socket connected");
+    });
+
+    socket.on("new-order", () => {
+      playSound();
+      fetchOrders(); // 🔄 safest way
+    });
+
+    socket.on("order-updated", ({ orderId, status }) => {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === orderId ? { ...o, status } : o
+        )
+      );
+    });
+
+    return () => {
+      socket.off("new-order");
+      socket.off("order-updated");
+    };
+  }, []);
+
+  // 🔄 UPDATE STATUS
   const updateStatus = async (orderId, status) => {
     try {
-     api.patch(
-  "/admin/orders/status",
-  { orderId, status },
-  {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-    },
-  }
-);
+      await api.patch("/admin/orders/status", {
+        orderId,
+        status,
+      });
 
-
-      // 🔥 realtime UI update
-      setOrders(prev =>
-        prev.map(o =>
+      setOrders((prev) =>
+        prev.map((o) =>
           o._id === orderId ? { ...o, status } : o
         )
       );
     } catch (err) {
-  console.error("UPDATE STATUS ERROR:", err.response?.data || err.message);
-  alert(
-    err.response?.data?.message ||
-    "Failed to update status"
-  );
-}
-const playSound = () => {
-  const audio = new Audio("/notification.mp3");
-  audio.play().catch(() => {});
-};
-useEffect(() => {
-  // 🔔 NEW ORDER
-  socket.on("new-order", (order) => {
-    setOrders((prev) => [order, ...prev]);
-    playSound();
-  });
-
-  // 🔄 STATUS UPDATE
-  socket.on("order-updated", ({ orderId, status }) => {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o._id === orderId ? { ...o, status } : o
-      )
-    );
-  });
-
-  return () => {
-    socket.off("new-order");
-    socket.off("order-updated");
-  };
-}, []);
-
-
-
+      console.error(err);
+      alert("Failed to update status");
+    }
   };
 
   return (
@@ -107,11 +103,11 @@ useEffect(() => {
           </thead>
 
           <tbody>
-            {orders.map(o => (
+            {orders.map((o) => (
               <tr
                 key={o._id}
-                style={{ cursor: "pointer" }}
                 onClick={() => setSelectedOrder(o)}
+                style={{ cursor: "pointer" }}
               >
                 <td>{o._id.slice(-6)}</td>
                 <td>{o.user?.phone || "-"}</td>
@@ -121,14 +117,16 @@ useEffect(() => {
                     className="form-select form-select-sm"
                     value={o.status}
                     onChange={(e) =>
-  updateStatus(o._id, STATUS_MAP[e.target.value])
-}
-
+                      updateStatus(
+                        o._id,
+                        STATUS_MAP[e.target.value]
+                      )
+                    }
                   >
-                    <option value="Placed">Placed</option>
-                    <option value="Packed">Packed</option>
-                    <option value="Out for Delivery">Out for Delivery</option>
-                    <option value="Delivered">Delivered</option>
+                    <option>Placed</option>
+                    <option>Packed</option>
+                    <option>Out for Delivery</option>
+                    <option>Delivered</option>
                   </select>
                 </td>
                 <td>{new Date(o.createdAt).toLocaleString()}</td>
