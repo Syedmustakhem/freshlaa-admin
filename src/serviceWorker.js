@@ -1,13 +1,20 @@
 export function register() {
-  // intentionally disabled
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .then(() => console.log("✅ PWA Service Worker registered"))
+        .catch((err) =>
+          console.error("❌ Service Worker registration failed:", err)
+        );
+    });
+  }
 }
 
 export function unregister() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
-        registration.unregister();
-      });
-    });
+    navigator.serviceWorker.getRegistrations().then((regs) =>
+      regs.forEach((reg) => reg.unregister())
+    );
   }
 }

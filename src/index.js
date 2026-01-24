@@ -20,4 +20,4 @@ root.render(
 );
 
 // ⚠️ TEMPORARILY DISABLE SERVICE WORKER
-serviceWorker.unregister();
+serviceWorker.register();
