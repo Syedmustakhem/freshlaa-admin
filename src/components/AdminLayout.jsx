@@ -1,6 +1,17 @@
+import { useEffect } from "react";
 import Sidebar from "./Sidebar";
 
 export default function AdminLayout({ children }) {
+
+  // 🔔 REQUEST NOTIFICATION PERMISSION ONCE
+  useEffect(() => {
+    if ("Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
   return (
     <div className="d-flex">
       <Sidebar />

@@ -48,10 +48,22 @@ export default function Orders() {
       console.log("🟢 Admin socket connected");
     });
 
-    socket.on("new-order", () => {
-      playSound();
-      fetchOrders(); // 🔄 safest way
+    socket.on("new-order", (order) => {
+  // 🔊 sound
+  playSound();
+
+  // 🔔 desktop notification
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("🛒 New Order Received", {
+      body: `${order.userName} • ₹${order.total}`,
+      icon: order.items?.[0]?.image || "/logo.png",
     });
+  }
+
+  // 🔄 refresh orders list
+  fetchOrders();
+});
+
 
     socket.on("order-updated", ({ orderId, status }) => {
       setOrders((prev) =>
