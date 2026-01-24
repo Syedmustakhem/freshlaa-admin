@@ -2,15 +2,23 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
+import socket from "../socket";
 
+/* ---------------- STATUS COLOR ---------------- */
 const statusColor = (status) => {
   switch (status) {
-    case "Placed": return "secondary";
-    case "Packed": return "warning";
-    case "OutForDelivery": return "info";
-    case "Delivered": return "success";
-    case "Cancelled": return "danger";
-    default: return "dark";
+    case "Placed":
+      return "secondary";
+    case "Packed":
+      return "warning";
+    case "OutForDelivery":
+      return "info";
+    case "Delivered":
+      return "success";
+    case "Cancelled":
+      return "danger";
+    default:
+      return "dark";
   }
 };
 
@@ -19,15 +27,33 @@ export default function AllOrders() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  /* ---------------- HELPERS ---------------- */
+
+  // 🔊 SOUND (browser safe)
+  const playSound = () => {
+    if (!window.__soundEnabled) return;
+    const audio = new Audio("/notification.mp3");
+    audio.play().catch(() => {});
+  };
+
+  // 🔔 DESKTOP NOTIFICATION
+  const showNotification = (order) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("🛒 New Order Received", {
+        body: `${order.userName || order.user?.name || "User"} • ₹${order.total}`,
+        icon: order.items?.[0]?.image || "/logo.png",
+      });
+    }
+  };
+
+  /* ---------------- API ---------------- */
+
   const fetchOrders = async () => {
     try {
-      const res = await api.get("/admin/orders", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      });
+      const res = await api.get("/admin/orders");
       setOrders(res.data.data || []);
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Failed to load orders");
     } finally {
       setLoading(false);
@@ -35,32 +61,68 @@ export default function AllOrders() {
   };
 
   const updateStatus = async (orderId, status) => {
-  try {
-    await api.patch(
-      "/admin/orders/status",
-      {
-        orderId: orderId,
-        status: status,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      }
-    );
+    try {
+      await api.patch("/admin/orders/status", {
+        orderId,
+        status,
+      });
 
-    alert("Status updated");
-    fetchOrders(); // reload orders
-  } catch (err) {
-    console.error(err);
-    alert("Failed to update status");
-  }
-};
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === orderId ? { ...o, status } : o
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    }
+  };
 
+  /* ---------------- INITIAL LOAD ---------------- */
 
   useEffect(() => {
     fetchOrders();
+
+    // 🔔 Ask notification permission
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    // 🔊 Unlock sound after first click
+    const enableSound = () => {
+      window.__soundEnabled = true;
+      document.removeEventListener("click", enableSound);
+    };
+
+    document.addEventListener("click", enableSound);
   }, []);
+
+  /* ---------------- SOCKET LISTENERS ---------------- */
+
+  useEffect(() => {
+    socket.on("new-order", (order) => {
+      console.log("🟢 New order received:", order);
+
+      playSound();
+      showNotification(order);
+      fetchOrders(); // safest sync
+    });
+
+    socket.on("order-updated", ({ orderId, status }) => {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === orderId ? { ...o, status } : o
+        )
+      );
+    });
+
+    return () => {
+      socket.off("new-order");
+      socket.off("order-updated");
+    };
+  }, []);
+
+  /* ---------------- UI ---------------- */
 
   return (
     <AdminLayout>
@@ -89,7 +151,9 @@ export default function AllOrders() {
 
                   <td
                     style={{ cursor: "pointer" }}
-                    onClick={() => navigate(`/admin/users/${o.user?._id}`)}
+                    onClick={() =>
+                      navigate(`/admin/users/${o.user?._id}`)
+                    }
                   >
                     <strong>{o.user?.name || "User"}</strong><br />
                     <small>{o.user?.phone}</small>
@@ -119,9 +183,7 @@ export default function AllOrders() {
                     </select>
                   </td>
 
-                  <td>
-                    {new Date(o.createdAt).toLocaleString()}
-                  </td>
+                  <td>{new Date(o.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
 

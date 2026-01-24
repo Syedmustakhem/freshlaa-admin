@@ -68,7 +68,6 @@ export default function UserOrders() {
                   className="form-select form-select-sm"
                 >
                   <option value="Placed">Placed</option>
-                  <option value="Confirmed">Confirmed</option>
                   <option value="Packed">Packed</option>
                   <option value="OutForDelivery">Out For Delivery</option>
                   <option value="Delivered">Delivered</option>
