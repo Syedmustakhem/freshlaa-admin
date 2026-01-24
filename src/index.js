@@ -7,8 +7,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 // ✅ IMPORT YOUR CUSTOM CSS (MISSING)
 import "./index.css";
-
 import * as serviceWorker from "./serviceWorker";
+
+
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -19,4 +20,4 @@ root.render(
 );
 
 // ⚠️ TEMPORARILY DISABLE SERVICE WORKER
-serviceWorker.register();
+serviceWorker.unregister();
