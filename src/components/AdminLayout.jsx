@@ -12,38 +12,48 @@ export default function AdminLayout({ children }) {
     }
   }, []);
 
+  // 🔔 Enable sound + notification + push
   const enableNotificationsAndSound = async () => {
-    // 🔊 Unlock sound
-    window.__soundEnabled = true;
     try {
+      // 🔊 Unlock sound
+      window.__soundEnabled = true;
       const audio = new Audio("/notification.mp3");
       await audio.play();
-      console.log("🔊 Sound unlocked");
-    } catch {}
 
-    // 🔔 Request permission
-    if (Notification.permission !== "granted") {
-      await Notification.requestPermission();
+      // 🔔 Request permission
+      if (Notification.permission !== "granted") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
+      }
+
+      // 🚀 Register push
+      await registerAdminPush();
+
+      console.log("✅ Notifications & sound enabled");
+    } catch (err) {
+      console.error("❌ Enable notification failed", err);
     }
-
-    // 🚀 Register admin push
-    await registerAdminPush();
   };
 
+  // 🚀 Register admin push
   const registerAdminPush = async () => {
     if (!("serviceWorker" in navigator)) return;
 
-    const reg = await navigator.serviceWorker.ready;
+    try {
+      const reg = await navigator.serviceWorker.ready;
 
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        process.env.REACT_APP_VAPID_PUBLIC_KEY
-      ),
-    });
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.REACT_APP_VAPID_PUBLIC_KEY
+        ),
+      });
 
-    await api.post("/admin/push/subscribe", sub);
-    console.log("✅ Admin push subscribed");
+      await api.post("/admin/push/subscribe", sub);
+      console.log("✅ Admin push subscribed");
+    } catch (err) {
+      console.error("❌ Push subscription failed", err);
+    }
   };
 
   return (
