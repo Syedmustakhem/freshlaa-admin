@@ -36,25 +36,36 @@ export default function AdminLayout({ children }) {
   };
 
   // 🚀 Register admin push
-  const registerAdminPush = async () => {
-    if (!("serviceWorker" in navigator)) return;
+ const registerAdminPush = async () => {
+  if (!("serviceWorker" in navigator)) return;
 
-    try {
-      const reg = await navigator.serviceWorker.ready;
+  try {
+    const reg = await navigator.serviceWorker.ready;
 
-      const sub = await reg.pushManager.subscribe({
+    // 🔁 Reuse existing subscription if present
+    let sub = await reg.pushManager.getSubscription();
+
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
           process.env.REACT_APP_VAPID_PUBLIC_KEY
         ),
       });
-
-      await api.post("/admin/push/subscribe", sub);
-      console.log("✅ Admin push subscribed");
-    } catch (err) {
-      console.error("❌ Push subscription failed", err);
     }
-  };
+
+    await api.post("/admin/push/subscribe", {
+      endpoint: sub.endpoint,
+      keys: sub.keys,
+    });
+
+    console.log("✅ Admin push subscribed");
+  } catch (err) {
+    console.error("❌ Push subscription failed", err);
+  }
+};
+
+
 
   return (
     <div className="d-flex">
