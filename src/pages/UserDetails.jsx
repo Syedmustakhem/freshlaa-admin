@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 
@@ -48,7 +49,9 @@ export default function UserDetails() {
   if (loading) {
     return (
       <AdminLayout>
-        <p>Loading user...</p>
+        <div className="dashboard-card text-center py-5 text-muted">
+          Loading user…
+        </div>
       </AdminLayout>
     );
   }
@@ -59,44 +62,74 @@ export default function UserDetails() {
 
   return (
     <AdminLayout>
-      <button className="btn btn-light mb-3" onClick={() => navigate(-1)}>
+      <button
+        className="btn btn-light mb-4"
+        onClick={() => navigate(-1)}
+      >
         ← Back
       </button>
 
-      <div className="card p-4">
-        <h4 className="mb-3">User Profile</h4>
+      <motion.div
+        className="dashboard-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h4 className="mb-4">User Profile</h4>
 
-        <p><strong>Name:</strong> {user.name || "-"}</p>
-        <p><strong>Phone:</strong> {user.phone}</p>
-        <p><strong>Email:</strong> {user.email || "-"}</p>
+        <div className="row mb-3">
+          <div className="col-md-6">
+            <strong>Name</strong>
+            <div>{user.name || "—"}</div>
+          </div>
 
-        <p>
-          <strong>Status:</strong>{" "}
-          <span className={`badge ${user.isBlocked ? "bg-danger" : "bg-success"}`}>
-  {user.isBlocked ? "Blocked" : "Active"}
-</span>
+          <div className="col-md-6">
+            <strong>Phone</strong>
+            <div>{user.phone}</div>
+          </div>
+        </div>
 
-        </p>
+        <div className="row mb-3">
+          <div className="col-md-6">
+            <strong>Email</strong>
+            <div>{user.email || "—"}</div>
+          </div>
 
-        <p>
-          <strong>Joined:</strong>{" "}
-          {new Date(user.createdAt).toLocaleString()}
-        </p>
+          <div className="col-md-6">
+            <strong>Status</strong>
+            <div>
+              <span
+                className={`status-badge ${
+                  isActive ? "completed" : "cancelled"
+                }`}
+              >
+                {isActive ? "Active" : "Blocked"}
+              </span>
+            </div>
+          </div>
+        </div>
 
-        <div className="mt-3">
-         <button
-  className={`btn ${user.isBlocked ? "btn-success" : "btn-danger"}`}
-  onClick={toggleStatus}
->
-  {user.isBlocked ? "Unblock User" : "Block User"}
-</button>
+        <div className="mb-4">
+          <strong>Joined</strong>
+          <div>
+            {new Date(user.createdAt).toLocaleString()}
+          </div>
+        </div>
 
+        <div className="mb-4">
+          <button
+            className={`btn ${
+              isActive ? "btn-outline-danger" : "btn-outline-success"
+            }`}
+            onClick={toggleStatus}
+          >
+            {isActive ? "Block User" : "Unblock User"}
+          </button>
         </div>
 
         <hr className="my-4" />
 
         {/* LINKS */}
-        <div className="d-flex gap-2">
+        <div className="d-flex flex-wrap gap-2">
           <button
             className="btn btn-outline-primary"
             onClick={() => navigate(`/admin/users/${id}/orders`)}
@@ -118,7 +151,7 @@ export default function UserDetails() {
             View Cart
           </button>
         </div>
-      </div>
+      </motion.div>
     </AdminLayout>
   );
 }

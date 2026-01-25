@@ -8,6 +8,7 @@ import Users from "./pages/Users";
 import Banners from "./pages/Banners";
 import AllOrders from "./pages/AllOrders";
 import Categories from "./pages/Categories";
+import AdminProfile from "./pages/AdminProfile";
 
 import UserDetails from "./pages/UserDetails";
 import UserOrders from "./pages/UserOrders";
@@ -15,119 +16,132 @@ import UserAddresses from "./pages/UserAddresses";
 import UserCart from "./pages/UserCart";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ToastProvider } from "./context/ToastContext";
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* AUTH */}
-        <Route path="/" element={<Login />} />
+      <ToastProvider>
+        <Routes>
+          {/* AUTH */}
+          <Route path="/" element={<Login />} />
 
-        {/* DASHBOARD */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+          {/* DASHBOARD */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* GLOBAL ORDERS (ALL USERS) */}
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <AllOrders />
-            </ProtectedRoute>
-          }
-        />
+          {/* ADMIN PROFILE */}
+          <Route
+            path="/admin/profile"
+            element={
+              <ProtectedRoute>
+                <AdminProfile />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* CATEGORIES */}
-        <Route
-          path="/categories"
-          element={
-            <ProtectedRoute>
-              <Categories />
-            </ProtectedRoute>
-          }
-        />
+          {/* GLOBAL ORDERS */}
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <AllOrders />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* CORE MODULES */}
-        <Route
-          path="/restaurants"
-          element={
-            <ProtectedRoute>
-              <Restaurants />
-            </ProtectedRoute>
-          }
-        />
+          {/* CATEGORIES */}
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute>
+                <Categories />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/products"
-          element={
-            <ProtectedRoute>
-              <Products />
-            </ProtectedRoute>
-          }
-        />
+          {/* CORE MODULES */}
+          <Route
+            path="/restaurants"
+            element={
+              <ProtectedRoute>
+                <Restaurants />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/users"
-          element={
-            <ProtectedRoute>
-              <Users />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/products"
+            element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* USER MANAGEMENT */}
-        <Route
-          path="/admin/users/:id"
-          element={
-            <ProtectedRoute>
-              <UserDetails />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Users />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/users/:id/orders"
-          element={
-            <ProtectedRoute>
-              <UserOrders />
-            </ProtectedRoute>
-          }
-        />
+          {/* USER MANAGEMENT */}
+          <Route
+            path="/admin/users/:id"
+            element={
+              <ProtectedRoute>
+                <UserDetails />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/users/:id/addresses"
-          element={
-            <ProtectedRoute>
-              <UserAddresses />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/users/:id/orders"
+            element={
+              <ProtectedRoute>
+                <UserOrders />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin/users/:id/cart"
-          element={
-            <ProtectedRoute>
-              <UserCart />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/users/:id/addresses"
+            element={
+              <ProtectedRoute>
+                <UserAddresses />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* BANNERS */}
-        <Route
-          path="/banners"
-          element={
-            <ProtectedRoute>
-              <Banners />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          <Route
+            path="/admin/users/:id/cart"
+            element={
+              <ProtectedRoute>
+                <UserCart />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* BANNERS */}
+          <Route
+            path="/banners"
+            element={
+              <ProtectedRoute>
+                <Banners />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

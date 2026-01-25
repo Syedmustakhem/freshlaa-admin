@@ -1,31 +1,46 @@
 import { NavLink } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Store,
+  Package,
+  Layers,
+  ShoppingCart,
+  Users,
+  Image,
+} from "lucide-react";
 
 export default function Sidebar() {
   return (
-    <div className="bg-dark text-white vh-100 p-3" style={{ width: "240px" }}>
-      <h5 className="mb-4">FreshLaa Admin</h5>
+    <aside className="admin-sidebar">
+      <div className="sidebar-header">
+        <h4>FreshLaa</h4>
+        <span>Admin Panel</span>
+      </div>
 
-      <NavLink className="nav-link text-white" to="/dashboard">
-        Dashboard
-      </NavLink>
-      <NavLink className="nav-link text-white" to="/restaurants">
-        Restaurants
-      </NavLink>
-      <NavLink className="nav-link text-white" to="/products">
-        Products
-      </NavLink>
-      <NavLink className="nav-link text-white" to="/categories">
-        Categories
-      </NavLink>
-      <NavLink className="nav-link text-white" to="/orders">
-        Orders
-      </NavLink>
-      <NavLink className="nav-link text-white" to="/users">
-        Users
-      </NavLink>
-      <NavLink className="nav-link text-white" to="/banners">
-        Banners
-      </NavLink>
-    </div>
+      <nav className="sidebar-nav">
+        <NavItem to="/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" />
+        <NavItem to="/restaurants" icon={<Store size={18} />} label="Restaurants" />
+        <NavItem to="/products" icon={<Package size={18} />} label="Products" />
+        <NavItem to="/categories" icon={<Layers size={18} />} label="Categories" />
+        <NavItem to="/orders" icon={<ShoppingCart size={18} />} label="Orders" />
+        <NavItem to="/users" icon={<Users size={18} />} label="Users" />
+        <NavItem to="/banners" icon={<Image size={18} />} label="Banners" />
+      </nav>
+    </aside>
+  );
+}
+
+/* ===== Sidebar Item ===== */
+function NavItem({ to, icon, label }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `sidebar-link ${isActive ? "active" : ""}`
+      }
+    >
+      <span className="icon">{icon}</span>
+      <span className="label">{label}</span>
+    </NavLink>
   );
 }

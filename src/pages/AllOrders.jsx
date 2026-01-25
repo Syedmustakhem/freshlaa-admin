@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 import socket from "../socket";
+import { useToast } from "../context/ToastContext";
 
 /* ---------------- STATUS COLOR ---------------- */
 const statusColor = (status) => {
@@ -22,21 +23,26 @@ const statusColor = (status) => {
   }
 };
 
+/* ---------------- LABEL FIX ---------------- */
+const statusLabel = (status) => {
+  if (status === "OutForDelivery") return "Out for Delivery";
+  return status;
+};
+
 export default function AllOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
-  /* ---------------- HELPERS ---------------- */
-
-  // 🔊 SOUND (browser safe)
+  /* ---------------- SOUND ---------------- */
   const playSound = () => {
     if (!window.__soundEnabled) return;
     const audio = new Audio("/notification.mp3");
     audio.play().catch(() => {});
   };
 
-  // 🔔 DESKTOP NOTIFICATION
+  /* ---------------- DESKTOP NOTIFICATION ---------------- */
   const showNotification = (order) => {
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification("🛒 New Order Received", {
@@ -54,7 +60,10 @@ export default function AllOrders() {
       setOrders(res.data.data || []);
     } catch (err) {
       console.error(err);
-      alert("Failed to load orders");
+      showToast({
+        type: "error",
+        message: "Failed to load orders",
+      });
     } finally {
       setLoading(false);
     }
@@ -62,19 +71,24 @@ export default function AllOrders() {
 
   const updateStatus = async (orderId, status) => {
     try {
-      await api.patch("/admin/orders/status", {
-        orderId,
-        status,
-      });
+      await api.patch("/admin/orders/status", { orderId, status });
 
       setOrders((prev) =>
         prev.map((o) =>
           o._id === orderId ? { ...o, status } : o
         )
       );
+
+      showToast({
+        type: "success",
+        message: "Order status updated",
+      });
     } catch (err) {
       console.error(err);
-      alert("Failed to update status");
+      showToast({
+        type: "error",
+        message: "Failed to update order status",
+      });
     }
   };
 
@@ -83,12 +97,10 @@ export default function AllOrders() {
   useEffect(() => {
     fetchOrders();
 
-    // 🔔 Ask notification permission
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
 
-    // 🔊 Unlock sound after first click
     const enableSound = () => {
       window.__soundEnabled = true;
       document.removeEventListener("click", enableSound);
@@ -97,15 +109,13 @@ export default function AllOrders() {
     document.addEventListener("click", enableSound);
   }, []);
 
-  /* ---------------- SOCKET LISTENERS ---------------- */
+  /* ---------------- SOCKET ---------------- */
 
   useEffect(() => {
     socket.on("new-order", (order) => {
-      console.log("🟢 New order received:", order);
-
       playSound();
       showNotification(order);
-      fetchOrders(); // safest sync
+      fetchOrders();
     });
 
     socket.on("order-updated", ({ orderId, status }) => {
@@ -163,7 +173,7 @@ export default function AllOrders() {
 
                   <td>
                     <span className={`badge bg-${statusColor(o.status)}`}>
-                      {o.status}
+                      {statusLabel(o.status)}
                     </span>
                   </td>
 
@@ -175,11 +185,11 @@ export default function AllOrders() {
                         updateStatus(o._id, e.target.value)
                       }
                     >
-                      <option>Placed</option>
-                      <option>Packed</option>
-                      <option>OutForDelivery</option>
-                      <option>Delivered</option>
-                      <option>Cancelled</option>
+                      <option value="Placed">Placed</option>
+                      <option value="Packed">Packed</option>
+                      <option value="OutForDelivery">Out for Delivery</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
                     </select>
                   </td>
 

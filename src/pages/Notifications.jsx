@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import api from "../services/api";
 import AdminLayout from "../components/AdminLayout";
 
@@ -23,32 +24,46 @@ export default function Notifications() {
 
   return (
     <AdminLayout>
-      <h3>Send Push Notification</h3>
+      <h3 className="page-heading">Push Notifications</h3>
 
-      <div className="card p-4 mt-3">
-        <input
-          className="form-control mb-3"
-          placeholder="Title"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
+      <motion.div
+        className="dashboard-card notification-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <p className="text-muted mb-4">
+          Send a push notification to all subscribed admin devices.
+        </p>
 
-        <textarea
-          className="form-control mb-3"
-          placeholder="Message"
-          rows="3"
-          value={body}
-          onChange={e => setBody(e.target.value)}
-        />
+        <div className="mb-3">
+          <label className="form-label small">Title</label>
+          <input
+            className="form-control"
+            placeholder="New order received"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="form-label small">Message</label>
+          <textarea
+            className="form-control"
+            placeholder="Order #1234 has been placed"
+            rows="4"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+          />
+        </div>
 
         <button
-          className="btn btn-dark"
-          disabled={loading}
+          className="btn btn-dark px-4"
+          disabled={loading || !title || !body}
           onClick={sendNotification}
         >
           {loading ? "Sending..." : "Send Notification"}
         </button>
-      </div>
+      </motion.div>
     </AdminLayout>
   );
 }

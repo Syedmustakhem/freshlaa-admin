@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 
@@ -21,44 +22,43 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboard();
   }, []);
-useEffect(() => {
-  let deferredPrompt;
 
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
+  useEffect(() => {
+    let deferredPrompt;
 
-    // Optional: show your own install button
-    console.log("Admin app install available");
-  });
-}, []);
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log("Admin app install available");
+    });
+  }, []);
 
   if (!data) {
     return (
       <AdminLayout>
-        <p>Loading dashboard...</p>
+        <p className="text-muted">Loading dashboard...</p>
       </AdminLayout>
     );
   }
 
   return (
     <AdminLayout>
-      <h3 className="mb-4">Dashboard</h3>
+      <h3 className="page-heading">Dashboard Overview</h3>
 
       {/* METRIC CARDS */}
-      <div className="row mb-4">
-        <Metric title="Users" value={data.totalUsers} />
-        <Metric title="Orders" value={data.totalOrders} />
-        <Metric title="Revenue" value={`₹${data.totalRevenue}`} />
-        <Metric title="Today Orders" value={data.todayOrders} />
+      <div className="dashboard-grid">
+        <Metric title="Users" value={data.totalUsers} delay={0.05} />
+        <Metric title="Orders" value={data.totalOrders} delay={0.1} />
+        <Metric title="Revenue" value={`₹${data.totalRevenue}`} delay={0.15} />
+        <Metric title="Today Orders" value={data.todayOrders} delay={0.2} />
       </div>
 
       {/* STATUS BREAKDOWN */}
-      <div className="card mb-4">
-        <div className="card-header">Orders by Status</div>
-        <ul className="list-group list-group-flush">
+      <div className="dashboard-card">
+        <h5 className="card-title">Orders by Status</h5>
+        <ul className="status-list">
           {data.statusStats.map((s) => (
-            <li className="list-group-item d-flex justify-content-between" key={s._id}>
+            <li key={s._id}>
               <span>{s._id}</span>
               <strong>{s.count}</strong>
             </li>
@@ -67,43 +67,51 @@ useEffect(() => {
       </div>
 
       {/* RECENT ORDERS */}
-      <div className="card">
-        <div className="card-header">Recent Orders</div>
-        <table className="table mb-0">
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>User</th>
-              <th>Total</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.recentOrders.map((o) => (
-              <tr key={o._id}>
-                <td>#{o._id.slice(-6)}</td>
-                <td>{o.user?.name || o.user?.phone}</td>
-                <td>₹{o.total}</td>
-                <td>{o.status}</td>
+      <div className="dashboard-card">
+        <h5 className="card-title">Recent Orders</h5>
+
+        <div className="table-responsive">
+          <table className="table table-modern">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>User</th>
+                <th>Total</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.recentOrders.map((o) => (
+                <tr key={o._id}>
+                  <td>#{o._id.slice(-6)}</td>
+                  <td>{o.user?.name || o.user?.phone}</td>
+                  <td>₹{o.total}</td>
+                  <td>
+                    <span className={`status-badge ${o.status.toLowerCase()}`}>
+                      {o.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </AdminLayout>
   );
 }
 
-/* METRIC CARD */
-function Metric({ title, value }) {
+/* ===== METRIC CARD ===== */
+function Metric({ title, value, delay }) {
   return (
-    <div className="col-md-3">
-      <div className="card text-center">
-        <div className="card-body">
-          <h6 className="text-muted">{title}</h6>
-          <h3>{value}</h3>
-        </div>
-      </div>
-    </div>
+    <motion.div
+      className="metric-card"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.35 }}
+    >
+      <h6>{title}</h6>
+      <h2>{value}</h2>
+    </motion.div>
   );
 }

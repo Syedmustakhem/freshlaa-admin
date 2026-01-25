@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 
@@ -14,25 +15,43 @@ export default function UserAddresses() {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
         },
       })
-      .then(res => setAddresses(res.data.data))
+      .then((res) => setAddresses(res.data.data || []))
       .catch(() => alert("Failed to load addresses"));
   }, [id]);
 
   return (
     <AdminLayout>
-      <h4>User Addresses</h4>
+      <h3 className="page-heading">User Addresses</h3>
 
-      {addresses.length === 0 && <p>No addresses found</p>}
-
-      {addresses.map((a, i) => (
-        <div key={i} className="card p-3 mb-2">
-          <p><strong>Name:</strong> {a.name}</p>
-          <p><strong>Phone:</strong> {a.phone}</p>
-          <p>
-            {a.address}, {a.city}, {a.state} - {a.pincode}
-          </p>
+      {addresses.length === 0 && (
+        <div className="dashboard-card text-center text-muted py-5">
+          No addresses found
         </div>
-      ))}
+      )}
+
+      <div className="row">
+        {addresses.map((a, i) => (
+          <div className="col-md-6" key={i}>
+            <motion.div
+              className="dashboard-card mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <h6 className="mb-2">{a.name}</h6>
+
+              <div className="text-muted small mb-2">
+                📞 {a.phone}
+              </div>
+
+              <div>
+                {a.address}, {a.city}, {a.state} –{" "}
+                <strong>{a.pincode}</strong>
+              </div>
+            </motion.div>
+          </div>
+        ))}
+      </div>
     </AdminLayout>
   );
 }

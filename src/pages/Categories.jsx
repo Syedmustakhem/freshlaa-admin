@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 
@@ -53,30 +54,39 @@ export default function Categories() {
 
   return (
     <AdminLayout>
-      <h3>Categories</h3>
+      <h3 className="page-heading">Categories</h3>
 
       {/* ADD CATEGORY */}
-      <div className="card p-3 mb-4">
+      <motion.div
+        className="dashboard-card mb-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h5 className="mb-3">Add Category</h5>
+
         <input
-          className="form-control mb-2"
+          className="form-control mb-3"
           placeholder="Category name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        {images.map((img, i) => (
-          <input
-            key={i}
-            className="form-control mb-2"
-            placeholder={`Image URL ${i + 1}`}
-            value={img}
-            onChange={(e) => {
-              const arr = [...images];
-              arr[i] = e.target.value;
-              setImages(arr);
-            }}
-          />
-        ))}
+        <div className="row g-3 mb-3">
+          {images.map((img, i) => (
+            <div className="col-md-3" key={i}>
+              <input
+                className="form-control"
+                placeholder={`Image URL ${i + 1}`}
+                value={img}
+                onChange={(e) => {
+                  const arr = [...images];
+                  arr[i] = e.target.value;
+                  setImages(arr);
+                }}
+              />
+            </div>
+          ))}
+        </div>
 
         <input
           className="form-control mb-3"
@@ -88,56 +98,75 @@ export default function Categories() {
         <button className="btn btn-dark" onClick={addCategory}>
           Add Category
         </button>
-      </div>
+      </motion.div>
 
-      {/* TABLE */}
-      <table className="table card">
-        <thead className="table-light">
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Products</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((c, i) => (
-            <tr key={c._id}>
-              <td>{i + 1}</td>
-              <td>{c.name}</td>
-              <td>{c.productCount}</td>
-              <td>
-                <span
-                  className={`badge ${
-                    c.isActive ? "bg-success" : "bg-danger"
-                  }`}
-                >
-                  {c.isActive ? "Active" : "Disabled"}
-                </span>
-              </td>
-              <td>
-                <button
-                  className={`btn btn-sm ${
-                    c.isActive ? "btn-danger" : "btn-success"
-                  }`}
-                  onClick={() => toggleStatus(c)}
-                >
-                  {c.isActive ? "Disable" : "Enable"}
-                </button>
-              </td>
-            </tr>
-          ))}
+      {/* CATEGORIES TABLE */}
+      <motion.div
+        className="dashboard-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="table-responsive">
+          <table className="table table-modern">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Products</th>
+                <th>Status</th>
+                <th className="text-end">Action</th>
+              </tr>
+            </thead>
 
-          {categories.length === 0 && (
-            <tr>
-              <td colSpan="5" className="text-center">
-                No categories found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            <tbody>
+              {categories.map((c, i) => (
+                <tr key={c._id}>
+                  <td>{i + 1}</td>
+                  <td>
+                    <strong>{c.name}</strong>
+                    {c.more && (
+                      <div className="text-muted small">
+                        {c.more}
+                      </div>
+                    )}
+                  </td>
+                  <td>{c.productCount}</td>
+                  <td>
+                    <span
+                      className={`status-badge ${
+                        c.isActive ? "completed" : "cancelled"
+                      }`}
+                    >
+                      {c.isActive ? "Active" : "Disabled"}
+                    </span>
+                  </td>
+                  <td className="text-end">
+                    <button
+                      className={`btn btn-sm ${
+                        c.isActive
+                          ? "btn-outline-danger"
+                          : "btn-outline-success"
+                      }`}
+                      onClick={() => toggleStatus(c)}
+                    >
+                      {c.isActive ? "Disable" : "Enable"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+
+              {categories.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-muted">
+                    No categories found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </AdminLayout>
   );
 }

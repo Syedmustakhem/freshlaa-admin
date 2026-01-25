@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
 
@@ -14,23 +15,44 @@ export default function UserCart() {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
         },
       })
-      .then(res => setCart(res.data.data))
+      .then((res) => setCart(res.data.data || []))
       .catch(() => alert("Failed to load cart"));
   }, [id]);
 
   return (
     <AdminLayout>
-      <h4>User Cart</h4>
+      <h3 className="page-heading">User Cart</h3>
 
-      {cart.length === 0 && <p>Cart is empty</p>}
-
-      {cart.map((c, i) => (
-        <div key={i} className="card p-3 mb-2">
-          <p><strong>Product:</strong> {c.productId?.name}</p>
-          <p><strong>Quantity:</strong> {c.quantity}</p>
-          <p><strong>Price:</strong> ₹{c.price}</p>
+      {cart.length === 0 && (
+        <div className="dashboard-card text-center text-muted py-5">
+          Cart is empty
         </div>
-      ))}
+      )}
+
+      <div className="row">
+        {cart.map((c, i) => (
+          <div className="col-md-6" key={i}>
+            <motion.div
+              className="dashboard-card mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <h6 className="mb-2">
+                {c.productId?.name || "Unknown Product"}
+              </h6>
+
+              <div className="text-muted small mb-2">
+                Quantity: {c.quantity}
+              </div>
+
+              <div className="fw-semibold">
+                Price: ₹{c.price}
+              </div>
+            </motion.div>
+          </div>
+        ))}
+      </div>
     </AdminLayout>
   );
 }
