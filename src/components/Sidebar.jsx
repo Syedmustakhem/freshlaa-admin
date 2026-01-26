@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   Users,
   Image,
+  Home,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -25,6 +26,12 @@ export default function Sidebar() {
         <NavItem to="/orders" icon={<ShoppingCart size={18} />} label="Orders" />
         <NavItem to="/users" icon={<Users size={18} />} label="Users" />
         <NavItem to="/banners" icon={<Image size={18} />} label="Banners" />
+        <NavItem
+  to="/home-layout"
+  icon={<Home size={18} />}
+  label="Home Layout"
+/>
+
       </nav>
     </aside>
   );

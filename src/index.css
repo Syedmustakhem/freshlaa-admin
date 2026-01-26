@@ -1344,3 +1344,148 @@ body {
   padding-right: 0 !important;
   max-width: 100% !important;
 }
+/* ===============================
+   HOME LAYOUT – ADMIN
+================================ */
+
+.home-layout-page {
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+/* Header */
+.home-layout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.home-layout-header h3 {
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+/* Section List */
+.home-layout-list {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+/* Section Item */
+.home-layout-item {
+  background: #ffffff;
+  padding: 16px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.home-layout-item:last-child {
+  border-bottom: none;
+}
+
+.home-layout-item:hover {
+  background: #f9fafb;
+}
+
+/* Dragging */
+.home-layout-item:active {
+  cursor: grabbing;
+}
+
+/* Left Section */
+.home-layout-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.drag-handle {
+  font-size: 18px;
+  cursor: grab;
+  color: #9ca3af;
+}
+
+.drag-handle:hover {
+  color: #111827;
+}
+
+/* Section Type */
+.section-type {
+  font-weight: 700;
+  font-size: 14.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Status Badge */
+.section-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-left: 10px;
+}
+
+.section-status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.section-status.disabled {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Action Button */
+.section-action-btn {
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.section-action-btn.enable {
+  border: 1px solid #16a34a;
+  color: #16a34a;
+  background: #ffffff;
+}
+
+.section-action-btn.enable:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.section-action-btn.disable {
+  border: 1px solid #dc2626;
+  color: #dc2626;
+  background: #ffffff;
+}
+
+.section-action-btn.disable:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+/* Saving Indicator */
+.saving-indicator {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section-type {
+    font-size: 13px;
+  }
+
+  .section-action-btn {
+    padding: 5px 10px;
+  }
+}

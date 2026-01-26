@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import HomeLayout from "./pages/HomeLayout";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -45,6 +46,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+  path="/home-layout"
+  element={
+    <ProtectedRoute>
+      <HomeLayout />
+    </ProtectedRoute>
+  }
+/>
+
 
           {/* GLOBAL ORDERS */}
           <Route
