@@ -254,11 +254,31 @@ h5 {
   justify-content: space-between;
   padding: 0 20px;
 }
+.sidebar-header h4 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.sidebar-header span {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Sidebar nav */
+.sidebar-nav {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 /* Sidebar */
 .admin-sidebar {
   width: 260px;
-  min-height: 100vh;
+  min-height: 100vh;           /* 🔑 THIS IS THE KEY */
   background: linear-gradient(180deg, #020617, #020617);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
 }
 .topbar-left {
   display: flex;

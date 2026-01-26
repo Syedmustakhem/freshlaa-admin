@@ -8,10 +8,16 @@ export default function Restaurants() {
   const navigate = useNavigate();
 
   const [restaurants, setRestaurants] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: "", address: "" });
 
-  /* ================= FETCH ================= */
+  const [form, setForm] = useState({
+    name: "",
+    address: "",
+    categoryId: "",
+  });
+
+  /* ================= FETCH RESTAURANTS ================= */
   const fetchRestaurants = async () => {
     try {
       const res = await api.get("/restaurants", {
@@ -25,27 +31,48 @@ export default function Restaurants() {
     }
   };
 
+  /* ================= FETCH CATEGORIES ================= */
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get("/categories", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      });
+      setCategories(res.data.data || []);
+    } catch {
+      alert("Failed to load categories");
+    }
+  };
+
   useEffect(() => {
     fetchRestaurants();
+    fetchCategories();
   }, []);
 
-  /* ================= ADD ================= */
+  /* ================= ADD RESTAURANT ================= */
   const addRestaurant = async () => {
+    if (!form.name || !form.categoryId) {
+      alert("Restaurant name and category are required");
+      return;
+    }
+
     try {
       await api.post("/restaurants", form, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
         },
       });
+
       setShowModal(false);
-      setForm({ name: "", address: "" });
+      setForm({ name: "", address: "", categoryId: "" });
       fetchRestaurants();
     } catch {
       alert("Failed to add restaurant");
     }
   };
 
-  /* ================= TOGGLE ================= */
+  /* ================= TOGGLE OPEN / CLOSE ================= */
   const toggleStatus = async (id) => {
     try {
       await api.patch(
@@ -72,7 +99,7 @@ export default function Restaurants() {
         </button>
       </div>
 
-      {/* TABLE */}
+      {/* ================= TABLE ================= */}
       <motion.div
         className="dashboard-card"
         initial={{ opacity: 0, y: 20 }}
@@ -84,6 +111,7 @@ export default function Restaurants() {
               <tr>
                 <th>#</th>
                 <th>Restaurant</th>
+                <th>Category</th>
                 <th>Address</th>
                 <th>Status</th>
                 <th className="text-end">Actions</th>
@@ -100,16 +128,20 @@ export default function Restaurants() {
                   </td>
 
                   <td className="text-muted">
+                    {r.categoryId?.name || "—"}
+                  </td>
+
+                  <td className="text-muted">
                     {r.address || "—"}
                   </td>
 
                   <td>
                     <span
                       className={`status-badge ${
-                        r.isActive ? "completed" : "cancelled"
+                        r.isOpen ? "completed" : "cancelled"
                       }`}
                     >
-                      {r.isActive ? "Active" : "Disabled"}
+                      {r.isOpen ? "Open" : "Closed"}
                     </span>
                   </td>
 
@@ -143,13 +175,13 @@ export default function Restaurants() {
 
                     <button
                       className={`btn btn-sm ${
-                        r.isActive
+                        r.isOpen
                           ? "btn-outline-danger"
                           : "btn-outline-success"
                       }`}
                       onClick={() => toggleStatus(r._id)}
                     >
-                      {r.isActive ? "Disable" : "Enable"}
+                      {r.isOpen ? "Close" : "Open"}
                     </button>
                   </td>
                 </tr>
@@ -157,7 +189,7 @@ export default function Restaurants() {
 
               {restaurants.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="text-center py-5 text-muted">
+                  <td colSpan="6" className="text-center py-5 text-muted">
                     No restaurants found
                   </td>
                 </tr>
@@ -167,7 +199,7 @@ export default function Restaurants() {
         </div>
       </motion.div>
 
-      {/* ADD MODAL */}
+      {/* ================= ADD MODAL ================= */}
       {showModal && (
         <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
           <div className="modal-dialog">
@@ -189,6 +221,21 @@ export default function Restaurants() {
                     setForm({ ...form, name: e.target.value })
                   }
                 />
+
+                <select
+                  className="form-control mb-3"
+                  value={form.categoryId}
+                  onChange={(e) =>
+                    setForm({ ...form, categoryId: e.target.value })
+                  }
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
 
                 <textarea
                   className="form-control"
