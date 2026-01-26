@@ -15,6 +15,7 @@ export default function Restaurants() {
     name: "",
     address: "",
     categoryId: "",
+    image: "", // ✅ restaurant banner (1200×600)
   });
 
   /* ================= FETCH RESTAURANTS ================= */
@@ -52,8 +53,8 @@ export default function Restaurants() {
 
   /* ================= ADD RESTAURANT ================= */
   const addRestaurant = async () => {
-    if (!form.name || !form.categoryId) {
-      alert("Restaurant name and category are required");
+    if (!form.name || !form.categoryId || !form.image) {
+      alert("Restaurant name, category and banner image are required");
       return;
     }
 
@@ -65,7 +66,12 @@ export default function Restaurants() {
       });
 
       setShowModal(false);
-      setForm({ name: "", address: "", categoryId: "" });
+      setForm({
+        name: "",
+        address: "",
+        categoryId: "",
+        image: "",
+      });
       fetchRestaurants();
     } catch {
       alert("Failed to add restaurant");
@@ -219,6 +225,15 @@ export default function Restaurants() {
                   value={form.name}
                   onChange={(e) =>
                     setForm({ ...form, name: e.target.value })
+                  }
+                />
+
+                <input
+                  className="form-control mb-3"
+                  placeholder="Banner Image URL (1200×600)"
+                  value={form.image}
+                  onChange={(e) =>
+                    setForm({ ...form, image: e.target.value })
                   }
                 />
 
