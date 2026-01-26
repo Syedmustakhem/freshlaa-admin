@@ -130,6 +130,32 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+<Route
+  path="/restaurants/:id/orders"
+  element={
+    <ProtectedRoute>
+      <RestaurantOrders />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/restaurants/:id/products"
+  element={
+    <ProtectedRoute>
+      <RestaurantProducts />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/restaurants/:id/dashboard"
+  element={
+    <ProtectedRoute>
+      <RestaurantDashboard />
+    </ProtectedRoute>
+  }
+/>
 
           {/* BANNERS */}
           <Route
