@@ -1325,3 +1325,22 @@ body {
     display: none;
   }
 }
+/* ===== FINAL GAP FIX ===== */
+
+.admin-main {
+  margin-left: 260px !important;
+  width: calc(100vw - 260px) !important;
+}
+
+.admin-content {
+  margin: 0 !important;
+  padding: 24px !important;
+}
+
+/* REMOVE any bootstrap container spacing inside admin */
+.admin-content .container,
+.admin-content .container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  max-width: 100% !important;
+}

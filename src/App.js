@@ -14,10 +14,10 @@ import UserDetails from "./pages/UserDetails";
 import UserOrders from "./pages/UserOrders";
 import UserAddresses from "./pages/UserAddresses";
 import UserCart from "./pages/UserCart";
-
+import RestaurantOrders from "./pages/RestaurantOrders"
+import RestaurantDashboard from "./pages/RestaurantDashboard"
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastProvider } from "./context/ToastContext";
-
 export default function App() {
   return (
     <BrowserRouter>
@@ -139,14 +139,7 @@ export default function App() {
   }
 />
 
-<Route
-  path="/restaurants/:id/products"
-  element={
-    <ProtectedRoute>
-      <RestaurantProducts />
-    </ProtectedRoute>
-  }
-/>
+
 
 <Route
   path="/restaurants/:id/dashboard"
