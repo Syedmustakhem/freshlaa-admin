@@ -1478,6 +1478,19 @@ body {
   font-weight: 600;
   color: #6b7280;
 }
+.banner-preview-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.banner-thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
