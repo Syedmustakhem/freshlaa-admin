@@ -22,76 +22,56 @@ export default function Restaurants() {
 
   const [restaurants, setRestaurants] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
     address: "",
     image: "",
     categorySlug: "",
+    isOpen: true,
   });
 
-  /* ================= FETCH RESTAURANTS ================= */
+  /* ================= FETCH ================= */
   const fetchRestaurants = async () => {
-    try {
-      const res = await api.get("/restaurants", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      });
-      setRestaurants(res.data.data || []);
-    } catch {
-      alert("Failed to load restaurants");
-    }
+    const res = await api.get("/restaurants");
+    setRestaurants(res.data.data || []);
   };
 
   useEffect(() => {
     fetchRestaurants();
   }, []);
 
-  /* ================= ADD RESTAURANT ================= */
+  /* ================= ADD ================= */
   const addRestaurant = async () => {
-    if (!form.name || !form.categorySlug || !form.image) {
-      alert("Name, category and image are required");
-      return;
-    }
-
-    try {
-      await api.post("/restaurants", form, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-        },
-      });
-
-      setShowModal(false);
-      setForm({
-        name: "",
-        address: "",
-        image: "",
-        categorySlug: "",
-      });
-
-      fetchRestaurants();
-    } catch {
-      alert("Failed to add restaurant");
-    }
+    await api.post("/restaurants", form);
+    closeModal();
+    fetchRestaurants();
   };
 
-  /* ================= TOGGLE OPEN / CLOSE ================= */
+  /* ================= UPDATE ================= */
+  const updateRestaurant = async () => {
+    await api.put(`/restaurants/${editId}`, form);
+    closeModal();
+    fetchRestaurants();
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditId(null);
+    setForm({
+      name: "",
+      address: "",
+      image: "",
+      categorySlug: "",
+      isOpen: true,
+    });
+  };
+
+  /* ================= TOGGLE ================= */
   const toggleStatus = async (id) => {
-    try {
-      await api.patch(
-        `/restaurants/${id}/toggle`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-          },
-        }
-      );
-      fetchRestaurants();
-    } catch {
-      alert("Failed to update status");
-    }
+    await api.patch(`/restaurants/${id}/toggle`);
+    fetchRestaurants();
   };
 
   return (
@@ -103,7 +83,7 @@ export default function Restaurants() {
         </button>
       </div>
 
-      {/* ================= TABLE ================= */}
+      {/* TABLE */}
       <motion.div className="dashboard-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="table-responsive">
           <table className="table table-modern">
@@ -129,7 +109,21 @@ export default function Restaurants() {
                       {r.isOpen ? "Open" : "Closed"}
                     </span>
                   </td>
+
                   <td className="text-end">
+                    {/* EDIT */}
+                    <button
+                      className="btn btn-sm btn-outline-warning me-2"
+                      onClick={() => {
+                        setForm(r);
+                        setEditId(r._id);
+                        setShowModal(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+
+                    {/* TOGGLE */}
                     <button
                       className={`btn btn-sm ${
                         r.isOpen ? "btn-outline-danger" : "btn-outline-success"
@@ -142,7 +136,7 @@ export default function Restaurants() {
                 </tr>
               ))}
 
-              {restaurants.length === 0 && (
+              {!restaurants.length && (
                 <tr>
                   <td colSpan="6" className="text-center py-5 text-muted">
                     No restaurants found
@@ -154,14 +148,14 @@ export default function Restaurants() {
         </div>
       </motion.div>
 
-      {/* ================= ADD MODAL ================= */}
+      {/* MODAL */}
       {showModal && (
         <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5>Add Restaurant</h5>
-                <button className="btn-close" onClick={() => setShowModal(false)} />
+                <h5>{editId ? "Edit Restaurant" : "Add Restaurant"}</h5>
+                <button className="btn-close" onClick={closeModal} />
               </div>
 
               <div className="modal-body">
@@ -174,7 +168,7 @@ export default function Restaurants() {
 
                 <input
                   className="form-control mb-3"
-                  placeholder="Banner Image URL (1200×600)"
+                  placeholder="Banner Image URL"
                   value={form.image}
                   onChange={(e) => setForm({ ...form, image: e.target.value })}
                 />
@@ -199,14 +193,27 @@ export default function Restaurants() {
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                 />
+
+                <div className="form-check form-switch mt-3">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={form.isOpen}
+                    onChange={(e) => setForm({ ...form, isOpen: e.target.checked })}
+                  />
+                  <label className="form-check-label">Restaurant Open</label>
+                </div>
               </div>
 
               <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                <button className="btn btn-secondary" onClick={closeModal}>
                   Cancel
                 </button>
-                <button className="btn btn-dark" onClick={addRestaurant}>
-                  Save
+                <button
+                  className="btn btn-dark"
+                  onClick={editId ? updateRestaurant : addRestaurant}
+                >
+                  {editId ? "Update" : "Save"}
                 </button>
               </div>
             </div>
