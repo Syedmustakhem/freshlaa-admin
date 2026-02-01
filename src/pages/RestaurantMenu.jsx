@@ -129,7 +129,8 @@ export default function RestaurantMenu() {
                 <td>{item.deliveryTime || "—"}</td>
                 <td>
                   <span className={`status-badge ${item.isAvailable ? "completed" : "cancelled"}`}>
-                    {item.isAvailable ? "Available" : "Hidden"}
+                    {item.isAvailable ? "Enabled" : "Disabled"}
+
                   </span>
                 </td>
 
