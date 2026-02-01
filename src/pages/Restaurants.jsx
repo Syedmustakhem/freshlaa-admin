@@ -44,6 +44,11 @@ export default function Restaurants() {
 
   /* ================= ADD ================= */
   const addRestaurant = async () => {
+    if (!form.name || !form.categorySlug) {
+      alert("Restaurant name and category are required");
+      return;
+    }
+
     await api.post("/restaurants", form);
     closeModal();
     fetchRestaurants();
@@ -51,11 +56,17 @@ export default function Restaurants() {
 
   /* ================= UPDATE ================= */
   const updateRestaurant = async () => {
+    if (!form.name || !form.categorySlug) {
+      alert("Restaurant name and category are required");
+      return;
+    }
+
     await api.put(`/restaurants/${editId}`, form);
     closeModal();
     fetchRestaurants();
   };
 
+  /* ================= CLOSE MODAL ================= */
   const closeModal = () => {
     setShowModal(false);
     setEditId(null);
@@ -84,7 +95,11 @@ export default function Restaurants() {
       </div>
 
       {/* TABLE */}
-      <motion.div className="dashboard-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div
+        className="dashboard-card"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
         <div className="table-responsive">
           <table className="table table-modern">
             <thead>
@@ -97,25 +112,48 @@ export default function Restaurants() {
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {restaurants.map((r, i) => (
                 <tr key={r._id}>
                   <td>{i + 1}</td>
-                  <td><strong>{r.name}</strong></td>
+                  <td>
+                    <strong>{r.name}</strong>
+                  </td>
                   <td className="text-muted">{r.categorySlug}</td>
                   <td className="text-muted">{r.address || "—"}</td>
                   <td>
-                    <span className={`status-badge ${r.isOpen ? "completed" : "cancelled"}`}>
+                    <span
+                      className={`status-badge ${
+                        r.isOpen ? "completed" : "cancelled"
+                      }`}
+                    >
                       {r.isOpen ? "Open" : "Closed"}
                     </span>
                   </td>
 
                   <td className="text-end">
+                    {/* MENU */}
+                    <button
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() =>
+                        navigate(`/admin/restaurants/${r._id}/menu`)
+                      }
+                    >
+                      Menu
+                    </button>
+
                     {/* EDIT */}
                     <button
                       className="btn btn-sm btn-outline-warning me-2"
                       onClick={() => {
-                        setForm(r);
+                        setForm({
+                          name: r.name || "",
+                          address: r.address || "",
+                          image: r.image || "",
+                          categorySlug: r.categorySlug || "",
+                          isOpen: r.isOpen ?? true,
+                        });
                         setEditId(r._id);
                         setShowModal(true);
                       }}
@@ -126,7 +164,9 @@ export default function Restaurants() {
                     {/* TOGGLE */}
                     <button
                       className={`btn btn-sm ${
-                        r.isOpen ? "btn-outline-danger" : "btn-outline-success"
+                        r.isOpen
+                          ? "btn-outline-danger"
+                          : "btn-outline-success"
                       }`}
                       onClick={() => toggleStatus(r._id)}
                     >
@@ -163,20 +203,26 @@ export default function Restaurants() {
                   className="form-control mb-3"
                   placeholder="Restaurant Name"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, name: e.target.value })
+                  }
                 />
 
                 <input
                   className="form-control mb-3"
                   placeholder="Banner Image URL"
                   value={form.image}
-                  onChange={(e) => setForm({ ...form, image: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, image: e.target.value })
+                  }
                 />
 
                 <select
                   className="form-control mb-3"
                   value={form.categorySlug}
-                  onChange={(e) => setForm({ ...form, categorySlug: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, categorySlug: e.target.value })
+                  }
                 >
                   <option value="">Select Category</option>
                   {CATEGORY_OPTIONS.map((c) => (
@@ -191,7 +237,9 @@ export default function Restaurants() {
                   placeholder="Address"
                   rows={3}
                   value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
                 />
 
                 <div className="form-check form-switch mt-3">
@@ -199,9 +247,13 @@ export default function Restaurants() {
                     className="form-check-input"
                     type="checkbox"
                     checked={form.isOpen}
-                    onChange={(e) => setForm({ ...form, isOpen: e.target.checked })}
+                    onChange={(e) =>
+                      setForm({ ...form, isOpen: e.target.checked })
+                    }
                   />
-                  <label className="form-check-label">Restaurant Open</label>
+                  <label className="form-check-label">
+                    Restaurant Open
+                  </label>
                 </div>
               </div>
 

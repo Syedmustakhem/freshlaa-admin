@@ -10,7 +10,7 @@ import Banners from "./pages/Banners";
 import AllOrders from "./pages/AllOrders";
 import Categories from "./pages/Categories";
 import AdminProfile from "./pages/AdminProfile";
-
+import RestaurantMenu from "./pages/RestaurantMenu";
 import UserDetails from "./pages/UserDetails";
 import UserOrders from "./pages/UserOrders";
 import UserAddresses from "./pages/UserAddresses";
@@ -54,6 +54,10 @@ export default function App() {
       <HomeLayout />
     </ProtectedRoute>
   }
+/>
+<Route
+  path="/admin/restaurants/:restaurantId/menu"
+  element={<RestaurantMenu />}
 />
 
 
