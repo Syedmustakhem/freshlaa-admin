@@ -107,8 +107,8 @@ const deleteProduct = async (productId) => {
 
   
 const saveEditProduct = async () => {
-  if (!editProduct.sectionId || !editProduct.subCategory) {
-    alert("Please select section and category");
+  if (!editProduct.sectionId || !editProduct.subCategory || !editProduct.category) {
+    alert("Section and category are required");
     return;
   }
 
@@ -116,11 +116,14 @@ const saveEditProduct = async () => {
     await api.put(
       `/products/${editProduct._id}`,
       {
-        ...editProduct,
-        variants: (editProduct.variants || []).map(v => ({
-          ...v,
-          unit: v.unit || "kg",
-        })),
+        name: editProduct.name,
+        description: editProduct.description,
+        isActive: editProduct.isActive,
+        sectionId: editProduct.sectionId,
+        subCategory: editProduct.subCategory,
+        category: editProduct.category,
+        images: editProduct.images,
+        variants: editProduct.variants,
       },
       {
         headers: {
@@ -131,10 +134,12 @@ const saveEditProduct = async () => {
 
     setEditProduct(null);
     fetchProducts();
-  } catch {
-    alert("Update failed");
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.message || "Update failed");
   }
 };
+
 
 const addNewVariant = () => {
   setNewProduct({
@@ -176,23 +181,23 @@ if (!newProduct.variants.some(v => v.isDefault)) {
 }
 
   try {
-    const payload = {
-      ...newProduct,
-
-      variants: newProduct.variants.map(v => ({
-        label: v.label,
-        unit: v.unit,
-        value: Number(v.value),
-        price: Number(v.price),
-        mrp: Number(v.mrp || v.price),
-        stock: Number(v.stock),
-        isDefault: v.isDefault,
-      })),
-    };
-const totalStock = newProduct.variants.reduce(
-  (sum, v) => sum + Number(v.stock || 0),
-  0
-);
+   const payload = {
+  name: newProduct.name,
+  description: newProduct.description,
+  sectionId: newProduct.sectionId,
+  subCategory: newProduct.subCategory,
+  category: newProduct.category,
+  images: newProduct.images,
+  variants: newProduct.variants.map(v => ({
+    label: v.label,
+    unit: v.unit || "kg",
+    value: Number(v.value || 1),
+    price: Number(v.price),
+    mrp: Number(v.mrp || v.price),
+    stock: Number(v.stock),
+    isDefault: v.isDefault,
+  })),
+};
 
     await api.post("/products/manual", payload, {
       headers: {
@@ -252,12 +257,18 @@ const handleEditSectionChange = async (sectionId) => {
 
 const saveVariants = async () => {
   try {
-    const payload = {
-      variants: (variantProduct.variants || []).map(v => ({
-        ...v,
-        unit: v.unit || "kg",
-      })),
-    };
+   const payload = {
+  variants: variantProduct.variants.map(v => ({
+    label: v.label,
+    unit: v.unit || "kg",
+    value: Number(v.value || 1),
+    price: Number(v.price),
+    mrp: Number(v.mrp || v.price),
+    stock: Number(v.stock),
+    isDefault: v.isDefault,
+  })),
+};
+
 
     await api.put(
       `/products/${variantProduct._id}`,
@@ -425,52 +436,58 @@ const saveVariants = async () => {
               <div className="border rounded p-3 mb-3">
                 <h6 className="mb-3">📂 Category Selection</h6>
 
-                <label className="form-label">Section</label>
-               <select
+               <label className="form-label">Section</label>
+<select
+  className="form-control mb-3"
+  value={newProduct.sectionId}
+  onChange={(e) => {
+    const sectionId = e.target.value;
+
+    setNewProduct({
+      ...newProduct,
+      sectionId,
+      subCategory: "",
+      category: "",
+    });
+
+    fetchCategoriesBySection(sectionId);
+  }}
+>
+  <option value="">Select Section</option>
+  {sections.map(s => (
+    <option key={s._id} value={s._id}>
+      {s.title}
+    </option>
+  ))}
+</select>
+
+
+               <label className="form-label">Category</label>
+<select
   className="form-control"
   disabled={!categories.length}
-  value={newProduct.subCategory}
+  value={newProduct.category}
   onChange={(e) => {
     const selected = categories.find(c => c.slug === e.target.value);
 
     setNewProduct({
       ...newProduct,
-      subCategory: selected.title, // ✅ readable
-      category: selected.slug,     // ✅ slug (indexed)
+      category: selected.slug,      // indexed slug
+      subCategory: selected.title,  // readable name
     });
   }}
 >
+  <option value="">
+    {categories.length ? "Select Category" : "Select section first"}
+  </option>
 
-                  <option value="">Select Section</option>
-                  {sections.map(s => (
-                    <option key={s._id} value={s._id}>
-                      {s.title}
-                    </option>
-                  ))}
-                </select>
+  {categories.map(c => (
+    <option key={c._id} value={c.slug}>
+      {c.title}
+    </option>
+  ))}
+</select>
 
-                <label className="form-label">Category</label>
-                <select
-                  className="form-control"
-                  disabled={!categories.length}
-                  value={newProduct.subCategory}
-                  onChange={(e) =>
-                    setNewProduct({
-                      ...newProduct,
-                      subCategory: e.target.value,
-                      category: e.target.value,
-                    })
-                  }
-                >
-                  <option value="">
-                    {categories.length ? "Select Category" : "Select section first"}
-                  </option>
-                  {categories.map(c => (
-                    <option key={c._id} value={c.slug}>
-                      {c.title}
-                    </option>
-                  ))}
-                </select>
               </div>
 {/* IMAGES */}
 <div className="border rounded p-3 mb-3">
@@ -657,6 +674,170 @@ const saveVariants = async () => {
         </div>
       </div>
     )}
+{editProduct && (
+  <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
+    <div className="modal-dialog modal-xl">
+      <div className="modal-content">
+
+        <div className="modal-header">
+          <h5>Edit Product</h5>
+          <button className="btn-close" onClick={() => setEditProduct(null)} />
+        </div>
+
+        <div className="modal-body">
+          <label className="form-label">Product Name</label>
+          <input
+            className="form-control mb-2"
+            value={editProduct.name}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, name: e.target.value })
+            }
+          />
+
+          <label className="form-label">Description</label>
+          <textarea
+            className="form-control mb-3"
+            value={editProduct.description}
+            onChange={(e) =>
+              setEditProduct({ ...editProduct, description: e.target.value })
+            }
+          />
+<label className="form-label">Section</label>
+<select
+  className="form-control mb-3"
+  value={editProduct.sectionId}
+  onChange={(e) => handleEditSectionChange(e.target.value)}
+>
+  <option value="">Select Section</option>
+  {sections.map(s => (
+    <option key={s._id} value={s._id}>
+      {s.title}
+    </option>
+  ))}
+</select>
+
+<label className="form-label">Category</label>
+<select
+  className="form-control"
+  disabled={!categories.length}
+  value={editProduct.category}
+  onChange={(e) => {
+    const selected = categories.find(c => c.slug === e.target.value);
+    setEditProduct({
+      ...editProduct,
+      category: selected.slug,
+      subCategory: selected.title,
+    });
+  }}
+>
+  <option value="">
+    {categories.length ? "Select Category" : "Select section first"}
+  </option>
+  {categories.map(c => (
+    <option key={c._id} value={c.slug}>
+      {c.title}
+    </option>
+  ))}
+</select>
+
+          <label className="form-label">Status</label>
+          <select
+            className="form-control"
+            value={editProduct.isActive ? "true" : "false"}
+            onChange={(e) =>
+              setEditProduct({
+                ...editProduct,
+                isActive: e.target.value === "true",
+              })
+            }
+          >
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={() => setEditProduct(null)}>
+            Cancel
+          </button>
+          <button className="btn btn-dark" onClick={saveEditProduct}>
+            Save Changes
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
+{variantProduct && (
+  <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
+    <div className="modal-dialog modal-xl">
+      <div className="modal-content">
+
+        <div className="modal-header">
+          <h5>Manage Variants – {variantProduct.name}</h5>
+          <button className="btn-close" onClick={() => setVariantProduct(null)} />
+        </div>
+
+        <div className="modal-body">
+          {variantProduct.variants.map((v, i) => (
+            <div className="row g-2 mb-2" key={i}>
+              <div className="col-md-4">
+                <input
+                  className="form-control"
+                  value={v.label}
+                  onChange={(e) =>
+                    updateVariantField(i, "label", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="col-md-3">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={v.price}
+                  onChange={(e) =>
+                    updateVariantField(i, "price", Number(e.target.value))
+                  }
+                />
+              </div>
+
+              <div className="col-md-3">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={v.stock}
+                  onChange={(e) =>
+                    updateVariantField(i, "stock", Number(e.target.value))
+                  }
+                />
+              </div>
+
+              <div className="col-md-2 text-center">
+                <input
+                  type="radio"
+                  checked={v.isDefault}
+                  onChange={() => setDefaultVariant(i)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={() => setVariantProduct(null)}>
+            Cancel
+          </button>
+          <button className="btn btn-dark" onClick={saveVariants}>
+            Save Variants
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
 
   </AdminLayout>
 );
