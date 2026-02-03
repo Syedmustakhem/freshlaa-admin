@@ -9,8 +9,11 @@ export default function Categories() {
   /* ================= FETCH CATEGORIES ================= */
   const fetchCategories = async () => {
     try {
-      const res = await api.get("/categories"); // ✅ CORRECT
-      setCategories(res.data.data || []);
+      const res = await api.get("/categories"); // admin categories API
+
+      // support both response shapes
+      const data = res.data.data || res.data || [];
+      setCategories(data);
     } catch (err) {
       console.error(err);
       alert("Failed to load categories");
@@ -23,7 +26,7 @@ export default function Categories() {
 
   return (
     <AdminLayout>
-      <h3 className="page-heading">Categories (Read Only)</h3>
+      <h3 className="page-heading">Categories</h3>
 
       <motion.div
         className="dashboard-card"
@@ -35,8 +38,10 @@ export default function Categories() {
             <thead>
               <tr>
                 <th>#</th>
-                <th>Name</th>
+                <th>Title</th>
                 <th>Slug</th>
+                <th>Section</th>
+                <th>Status</th>
               </tr>
             </thead>
 
@@ -44,16 +49,39 @@ export default function Categories() {
               {categories.map((c, i) => (
                 <tr key={c._id}>
                   <td>{i + 1}</td>
+
+                  {/* ✅ title (NOT name) */}
                   <td>
-                    <strong>{c.name}</strong>
+                    <strong>{c.title}</strong>
                   </td>
+
                   <td className="text-muted">{c.slug}</td>
+
+                  {/* ✅ populated section */}
+                  <td>
+                    {c.sectionId?.title ? (
+                      <span className="badge badge-info">
+                        {c.sectionId.title}
+                      </span>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </td>
+
+                  {/* ✅ isActive */}
+                  <td>
+                    {c.isActive ? (
+                      <span className="badge badge-success">Active</span>
+                    ) : (
+                      <span className="badge badge-danger">Inactive</span>
+                    )}
+                  </td>
                 </tr>
               ))}
 
               {categories.length === 0 && (
                 <tr>
-                  <td colSpan="3" className="text-center py-4 text-muted">
+                  <td colSpan="5" className="text-center py-4 text-muted">
                     No categories found
                   </td>
                 </tr>
