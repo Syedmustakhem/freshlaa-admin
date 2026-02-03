@@ -6,16 +6,17 @@ import api from "../services/api";
 
 /* 🔥 SAME SLUGS AS APP */
 const CATEGORY_OPTIONS = [
-  { name: "Fresh Fruits", slug: "fresh-fruits" },
+  { name: "Fresh Fruit Juices", slug: "fresh-fruit-juices" },
+  { name: "Fresh Fruits & Salads", slug: "fresh-fruits-salads" },
   { name: "Cool Drinks", slug: "cool-drinks" },
-  { name: "Dosa & More", slug: "dosa-more" },
-  { name: "Biryani", slug: "biryani" },
+  { name: "Meals, Biryani & Curries", slug: "meals-biryani-curries" },
   { name: "Home Food", slug: "home-food" },
-  { name: "Curries", slug: "curries" },
+  { name: "Pizza & Noodles", slug: "pizza-noodles" },
   { name: "Non-Veg", slug: "non-veg" },
   { name: "Fast Food", slug: "fast-food" },
   { name: "Pani Puri & More", slug: "pani-puri-more" },
 ];
+
 
 export default function Restaurants() {
   const navigate = useNavigate();

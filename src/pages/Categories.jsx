@@ -9,8 +9,7 @@ export default function Categories() {
   /* ================= FETCH CATEGORIES ================= */
   const fetchCategories = async () => {
     try {
-      const res = await api.get("/categories"); // admin categories API
-
+const res = await api.get("/admin/categories");
       // support both response shapes
       const data = res.data.data || res.data || [];
       setCategories(data);
