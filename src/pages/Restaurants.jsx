@@ -17,7 +17,6 @@ const CATEGORY_OPTIONS = [
   { name: "Pani Puri & More", slug: "pani-puri-more" },
 ];
 
-
 export default function Restaurants() {
   const navigate = useNavigate();
 

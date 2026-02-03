@@ -7,6 +7,8 @@ export default function Products() {
   const [editProduct, setEditProduct] = useState(null);
   const [variantProduct, setVariantProduct] = useState(null);
 const [showAddModal, setShowAddModal] = useState(false);
+const [sections, setSections] = useState([]);
+const [categories, setCategories] = useState([]);
 
 const emptyVariant = {
   label: "",
@@ -21,32 +23,38 @@ const emptyVariant = {
 const [newProduct, setNewProduct] = useState({
   name: "",
   description: "",
+  sectionId: "",
+  subCategory: "",
   category: "",
   images: [],
   variants: [emptyVariant],
 });
+const fetchProducts = async () => {
+  try {
+    const res = await api.get("/products/admin/all", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+      },
+    });
+    setProducts(res.data.data || []);
+  } catch (err) {
+    console.error("Failed to load products", err);
+    alert("Failed to load products");
+  }
+};
 
-  /* ================= FETCH PRODUCTS (ADMIN) ================= */
-  const fetchProducts = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
-
-      const res = await api.get("/products/admin/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setProducts(res.data.data || []);
-    } catch (err) {
-      console.error("Failed to load products", err);
-      alert("Failed to load products");
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+ const fetchSections = async () => {
+  const res = await api.get("/admin/category-sections", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+    },
+  });
+  setSections(res.data.data || []);
+};
+useEffect(() => {
+  fetchProducts();
+  fetchSections();
+}, []);
 
   /* ================= PRODUCT STATUS ================= */
   const toggleStatus = async (product) => {
@@ -83,41 +91,51 @@ const deleteProduct = async (productId) => {
 };
 
   /* ================= EDIT PRODUCT ================= */
- const openEditProduct = (product) => {
+ const openEditProduct = async (product) => {
   setEditProduct({
     ...JSON.parse(JSON.stringify(product)),
     variants: (product.variants || []).map(v => ({
-  ...v,
-  unit: v.unit || "kg",
-}))
-,
-  });
-};
-
-  const saveEditProduct = async () => {
-    try {
-    await api.put(
-  `/products/${editProduct._id}`,
-  {
-    ...editProduct,
-    variants: (editProduct.variants || []).map(v => ({
       ...v,
       unit: v.unit || "kg",
     })),
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-    },
-  }
-);
+  });
 
-      setEditProduct(null);
-      fetchProducts();
-    } catch {
-      alert("Update failed");
-    }
-  };
+  if (product.sectionId) {
+    await fetchCategoriesBySection(product.sectionId);
+  }
+};
+
+  
+const saveEditProduct = async () => {
+  if (!editProduct.sectionId || !editProduct.subCategory) {
+    alert("Please select section and category");
+    return;
+  }
+
+  try {
+    await api.put(
+      `/products/${editProduct._id}`,
+      {
+        ...editProduct,
+        variants: (editProduct.variants || []).map(v => ({
+          ...v,
+          unit: v.unit || "kg",
+        })),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      }
+    );
+
+    setEditProduct(null);
+    fetchProducts();
+  } catch {
+    alert("Update failed");
+  }
+};
+
 const addNewVariant = () => {
   setNewProduct({
     ...newProduct,
@@ -151,6 +169,10 @@ const saveNewProduct = async () => {
         unit: v.unit || "kg",   // FORCE unit
       })),
     };
+if (!newProduct.sectionId || !newProduct.subCategory) {
+  alert("Please select section and category");
+  return;
+}
 
     await api.post("/products/manual", payload, {
       headers: {
@@ -159,13 +181,16 @@ const saveNewProduct = async () => {
     });
 
     setShowAddModal(false);
-    setNewProduct({
+   setNewProduct({
   name: "",
   description: "",
+  sectionId: "",
+  subCategory: "",
   category: "",
   images: [],
   variants: [{ ...emptyVariant }],
 });
+
 
     fetchProducts();
   } catch (err) {
@@ -173,6 +198,32 @@ const saveNewProduct = async () => {
   }
 };
 
+const fetchCategoriesBySection = async (sectionId) => {
+  if (!sectionId) {
+    setCategories([]);
+    return;
+  }
+
+  const res = await api.get(
+    `/admin/categories?sectionId=${sectionId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+      },
+    }
+  );
+
+  setCategories(res.data.data || []);
+};
+const handleEditSectionChange = async (sectionId) => {
+  setEditProduct({
+    ...editProduct,
+    sectionId,
+    subCategory: "",
+    category: "",
+  });
+  await fetchCategoriesBySection(sectionId);
+};
 
   /* ================= VARIANT HELPERS ================= */
   const updateVariantField = (index, field, value) => {
@@ -221,430 +272,241 @@ const saveVariants = async () => {
 
   return (
     <AdminLayout>
-<div className="d-flex justify-content-between mb-3">
-  <h3>Products</h3>
-  <button
-    className="btn btn-dark"
-    onClick={() => setShowAddModal(true)}
-  >
-    + Add Product
-  </button>
-</div>
-
-      {/* ================= PRODUCT TABLE ================= */}
-      <div className="card">
-        <table className="table mb-0">
-          <thead className="table-light">
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Default Price</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {products.map((p, i) => (
-              <tr key={p._id}>
-                <td>{i + 1}</td>
-                <td>{p.name}</td>
-                <td>
-                  ₹{p.variants?.find(v => v.isDefault)?.price || "-"}
-                </td>
-               <td>
-  {p.stock === 0 ? (
-    <span className="badge bg-secondary">Out of Stock</span>
-  ) : (
-    <button
-      className={`btn btn-sm ${
-        p.isActive ? "btn-success" : "btn-danger"
-      }`}
-      onClick={() => toggleStatus(p)}
-    >
-      {p.isActive ? "Active" : "Inactive"}
-    </button>
-  )}
-</td>
-<td>
-  <button
-    className="btn btn-sm btn-outline-dark me-2"
-    onClick={() => openEditProduct(p)}
-  >
-    Edit
-  </button>
-
-  <button
-    className="btn btn-sm btn-outline-primary me-2"
-    onClick={() =>
-      setVariantProduct({
-        ...JSON.parse(JSON.stringify(p)),
-        variants: p.variants.map(v => ({
-          ...v,
-          unit: v.unit || "kg",
-        })),
-      })
-    }
-  >
-    Variants
-  </button>
-
-  <button
-    className="btn btn-sm btn-outline-danger"
-    onClick={() => deleteProduct(p._id)}
-  >
-    Delete
-  </button>
-</td>
-
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ================= EDIT PRODUCT MODAL ================= */}
-      {editProduct && (
-        <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5>Edit Product</h5>
-                <button className="btn-close" onClick={() => setEditProduct(null)} />
-              </div>
-
-              <div className="modal-body">
-                <input
-                  className="form-control mb-2"
-                  placeholder="Name"
-                  value={editProduct.name}
-                  onChange={(e) =>
-                    setEditProduct({ ...editProduct, name: e.target.value })
-                  }
-                />
-
-                <textarea
-                  className="form-control mb-2"
-                  placeholder="Description"
-                  rows={3}
-                  value={editProduct.description || ""}
-                  onChange={(e) =>
-                    setEditProduct({ ...editProduct, description: e.target.value })
-                  }
-                />
-
-                <input
-                  className="form-control mb-2"
-                  placeholder="Category"
-                  value={editProduct.category || ""}
-                  onChange={(e) =>
-                    setEditProduct({ ...editProduct, category: e.target.value })
-                  }
-                />
-
-                {/* Images */}
-                <h6 className="mt-3">Images</h6>
-                {editProduct.images?.map((img, i) => (
-                  <div className="d-flex mb-2" key={i}>
-                    <input
-                      className="form-control"
-                      value={img}
-                      onChange={(e) => {
-                        const imgs = [...editProduct.images];
-                        imgs[i] = e.target.value;
-                        setEditProduct({ ...editProduct, images: imgs });
-                      }}
-                    />
-                    <button
-                      className="btn btn-danger ms-2"
-                      onClick={() => {
-                        const imgs = editProduct.images.filter((_, idx) => idx !== i);
-                        setEditProduct({ ...editProduct, images: imgs });
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-
-                <button
-                  className="btn btn-sm btn-outline-success"
-                  onClick={() =>
-                    setEditProduct({
-                      ...editProduct,
-                      images: [...(editProduct.images || []), ""],
-                    })
-                  }
-                >
-                  + Add Image
-                </button>
-              </div>
-
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setEditProduct(null)}>
-                  Cancel
-                </button>
-                <button className="btn btn-dark" onClick={saveEditProduct}>
-                  Save Product
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= VARIANTS MODAL ================= */}
-      {variantProduct && (
-        <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5>Product Variants</h5>
-                <button className="btn-close" onClick={() => setVariantProduct(null)} />
-              </div>
-
-              <div className="modal-body">
-                <table className="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th>Label</th>
-                      <th>Price</th>
-                      <th>MRP</th>
-                      <th>Stock</th>
-                      <th>Default</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {variantProduct.variants.map((v, i) => (
-                      <tr key={i}>
-                        <td>{v.label}</td>
-                        <td>
-                          <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            value={v.price}
-                            onChange={(e) =>
-                              updateVariantField(i, "price", Number(e.target.value))
-                            }
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            value={v.mrp}
-                            onChange={(e) =>
-                              updateVariantField(i, "mrp", Number(e.target.value))
-                            }
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            value={v.stock}
-                            onChange={(e) =>
-                              updateVariantField(i, "stock", Number(e.target.value))
-                            }
-                          />
-                        </td>
-                        <td className="text-center">
-                          <input
-                            type="radio"
-                            checked={v.isDefault}
-                            onChange={() => setDefaultVariant(i)}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setVariantProduct(null)}>
-                  Cancel
-                </button>
-                <button className="btn btn-dark" onClick={saveVariants}>
-                  Save Variants
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {showAddModal && (
+{showAddModal && (
   <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
     <div className="modal-dialog modal-xl">
       <div className="modal-content">
+
+        {/* HEADER */}
         <div className="modal-header">
           <h5>Add Product</h5>
           <button className="btn-close" onClick={() => setShowAddModal(false)} />
         </div>
 
         <div className="modal-body">
-          <input
-            className="form-control mb-2"
-            placeholder="Product Name"
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, name: e.target.value })
-            }
-          />
 
-          <input
-            className="form-control mb-2"
-            placeholder="Category"
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, category: e.target.value })
-            }
-          />
+          {/* ================= BASIC INFO ================= */}
+          <div className="border rounded p-3 mb-3">
+            <h6 className="mb-3">🧾 Basic Information</h6>
 
-          <textarea
-            className="form-control mb-3"
-            placeholder="Description"
-            rows={3}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, description: e.target.value })
-            }
-          />
-{/* ================= ADD PRODUCT IMAGES ================= */}
-<h6 className="mt-3">Product Images</h6>
+            <label className="form-label">Product Name</label>
+            <input
+              className="form-control mb-2"
+              placeholder="e.g. Fresh Apples"
+              value={newProduct.name}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, name: e.target.value })
+              }
+            />
 
-{newProduct.images.map((img, i) => (
-  <div className="d-flex mb-2" key={i}>
-    <input
-      className="form-control"
-      placeholder="Image URL"
-      value={img}
-      onChange={(e) => {
-        const imgs = [...newProduct.images];
-        imgs[i] = e.target.value;
-        setNewProduct({ ...newProduct, images: imgs });
-      }}
-    />
-    <button
-      className="btn btn-danger ms-2"
-      onClick={() => {
-        const imgs = newProduct.images.filter((_, idx) => idx !== i);
-        setNewProduct({ ...newProduct, images: imgs });
-      }}
-    >
-      ✕
-    </button>
-  </div>
-))}
+            <label className="form-label">Description</label>
+            <textarea
+              className="form-control"
+              rows={2}
+              placeholder="Short description (optional)"
+              value={newProduct.description}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, description: e.target.value })
+              }
+            />
+          </div>
 
-<button
-  className="btn btn-sm btn-outline-success mb-3"
-  onClick={() =>
-    setNewProduct({
-      ...newProduct,
-      images: [...newProduct.images, ""],
-    })
-  }
->
-  + Add Image
-</button>
+          {/* ================= CATEGORY ================= */}
+          <div className="border rounded p-3 mb-3">
+            <h6 className="mb-3">📂 Category Selection</h6>
 
-          <h6>Variants</h6>
-          {newProduct.variants.map((v, i) => (
-            <div className="row g-2 mb-2" key={i}>
-              <div className="col">
+            <label className="form-label">Section</label>
+            <select
+              className="form-control mb-3"
+              value={newProduct.sectionId}
+              onChange={(e) => {
+                const sectionId = e.target.value;
+                setNewProduct({
+                  ...newProduct,
+                  sectionId,
+                  category: "",
+                  subCategory: "",
+                });
+                fetchCategoriesBySection(sectionId);
+              }}
+            >
+              <option value="">Select Section</option>
+              {sections.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.title}
+                </option>
+              ))}
+            </select>
+
+            <label className="form-label">Category</label>
+            <select
+              className="form-control"
+              disabled={!categories.length}
+              value={newProduct.subCategory}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  subCategory: e.target.value,
+                  category: e.target.value,
+                })
+              }
+            >
+              <option value="">
+                {categories.length ? "Select Category" : "Select section first"}
+              </option>
+              {categories.map((c) => (
+                <option key={c._id} value={c.slug}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* ================= IMAGES ================= */}
+          <div className="border rounded p-3 mb-3">
+            <h6 className="mb-3">🖼 Product Images</h6>
+
+            {newProduct.images.map((img, i) => (
+              <div className="d-flex mb-2" key={i}>
                 <input
                   className="form-control"
-                  placeholder="Label (e.g. 500g Pack)"
-                  onChange={(e) =>
-                    updateNewVariant(i, "label", e.target.value)
-                  }
+                  placeholder="Image URL"
+                  value={img}
+                  onChange={(e) => {
+                    const imgs = [...newProduct.images];
+                    imgs[i] = e.target.value;
+                    setNewProduct({ ...newProduct, images: imgs });
+                  }}
                 />
-              </div>
-
-              <div className="col">
-                <select
-                  className="form-select"
-                  value={v.unit}
-                  onChange={(e) =>
-                    updateNewVariant(i, "unit", e.target.value)
-                  }
+                <button
+                  className="btn btn-outline-danger ms-2"
+                  onClick={() => {
+                    const imgs = newProduct.images.filter((_, idx) => idx !== i);
+                    setNewProduct({ ...newProduct, images: imgs });
+                  }}
                 >
-                  <option value="kg">kg</option>
-                  <option value="g">g</option>
-                  <option value="l">l</option>
-                  <option value="ml">ml</option>
-                  <option value="pcs">pcs</option>
-                </select>
+                  ✕
+                </button>
               </div>
+            ))}
 
-              <div className="col">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Qty"
-                  onChange={(e) =>
-                    updateNewVariant(i, "value", Number(e.target.value))
-                  }
-                />
+            <button
+              className="btn btn-sm btn-outline-success"
+              onClick={() =>
+                setNewProduct({
+                  ...newProduct,
+                  images: [...newProduct.images, ""],
+                })
+              }
+            >
+              + Add Image
+            </button>
+          </div>
+
+          {/* ================= VARIANTS ================= */}
+          <div className="border rounded p-3">
+            <h6 className="mb-2">📦 Variants & Pricing</h6>
+            <small className="text-muted d-block mb-3">
+              Add sizes, prices & stock
+            </small>
+
+            {newProduct.variants.map((v, i) => (
+              <div className="row g-2 align-items-end mb-2" key={i}>
+                <div className="col-md-3">
+                  <label className="form-label">Label</label>
+                  <input
+                    className="form-control"
+                    placeholder="500g Pack"
+                    onChange={(e) =>
+                      updateNewVariant(i, "label", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="col-md-2">
+                  <label className="form-label">Unit</label>
+                  <select
+                    className="form-select"
+                    value={v.unit}
+                    onChange={(e) =>
+                      updateNewVariant(i, "unit", e.target.value)
+                    }
+                  >
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="l">l</option>
+                    <option value="ml">ml</option>
+                    <option value="pcs">pcs</option>
+                  </select>
+                </div>
+
+                <div className="col-md-2">
+                  <label className="form-label">Qty</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    onChange={(e) =>
+                      updateNewVariant(i, "value", Number(e.target.value))
+                    }
+                  />
+                </div>
+
+                <div className="col-md-2">
+                  <label className="form-label">Price</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    onChange={(e) =>
+                      updateNewVariant(i, "price", Number(e.target.value))
+                    }
+                  />
+                </div>
+
+                <div className="col-md-2">
+                  <label className="form-label">Stock</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    onChange={(e) =>
+                      updateNewVariant(i, "stock", Number(e.target.value))
+                    }
+                  />
+                </div>
+
+                <div className="col-md-1 text-center">
+                  <label className="form-label">Default</label>
+                  <input
+                    type="radio"
+                    checked={v.isDefault}
+                    onChange={() => setNewDefaultVariant(i)}
+                  />
+                </div>
               </div>
+            ))}
 
-              <div className="col">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Price"
-                  onChange={(e) =>
-                    updateNewVariant(i, "price", Number(e.target.value))
-                  }
-                />
-              </div>
-
-              <div className="col">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="MRP"
-                  onChange={(e) =>
-                    updateNewVariant(i, "mrp", Number(e.target.value))
-                  }
-                />
-              </div>
-
-              <div className="col">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Stock"
-                  onChange={(e) =>
-                    updateNewVariant(i, "stock", Number(e.target.value))
-                  }
-                />
-              </div>
-
-              <div className="col text-center">
-                <input
-                  type="radio"
-                  checked={v.isDefault}
-                  onChange={() => setNewDefaultVariant(i)}
-                />
-              </div>
-            </div>
-          ))}
-
-          <button
-            className="btn btn-sm btn-outline-primary"
-            onClick={addNewVariant}
-          >
-            + Add Variant
-          </button>
+            <button
+              className="btn btn-sm btn-outline-primary mt-2"
+              onClick={addNewVariant}
+            >
+              + Add Variant
+            </button>
+          </div>
         </div>
 
+        {/* FOOTER */}
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
             Cancel
           </button>
-          <button className="btn btn-dark" onClick={saveNewProduct}>
+          <button
+            className="btn btn-dark"
+            disabled={!newProduct.name || !newProduct.sectionId || !newProduct.subCategory}
+            onClick={saveNewProduct}
+          >
             Save Product
           </button>
         </div>
+
       </div>
     </div>
   </div>
