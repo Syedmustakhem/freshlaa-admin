@@ -17,20 +17,23 @@ const CATEGORY_OPTIONS = [
   { name: "Pani Puri & More", slug: "pani-puri-more" },
 ];
 
+const DEFAULT_FORM = {
+  name: "",
+  address: "",
+  image: "",
+  categorySlug: "",
+  openTime: "09:00",
+  closeTime: "23:00",
+  isOpen: true,
+};
+
 export default function Restaurants() {
   const navigate = useNavigate();
 
   const [restaurants, setRestaurants] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
-
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    image: "",
-    categorySlug: "",
-    isOpen: true,
-  });
+  const [form, setForm] = useState(DEFAULT_FORM);
 
   /* ================= FETCH ================= */
   const fetchRestaurants = async () => {
@@ -44,39 +47,51 @@ export default function Restaurants() {
 
   /* ================= ADD ================= */
   const addRestaurant = async () => {
-    if (!form.name || !form.categorySlug) {
-      alert("Restaurant name and category are required");
+    if (!form.name || !form.categorySlug || !form.openTime || !form.closeTime) {
+      alert("Name, category, open time and close time are required");
       return;
     }
 
-    await api.post("/restaurants", form);
-    closeModal();
-    fetchRestaurants();
+    if (form.openTime >= form.closeTime) {
+      alert("Close time must be after open time");
+      return;
+    }
+
+    try {
+      await api.post("/restaurants", form);
+      closeModal();
+      fetchRestaurants();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to add restaurant");
+    }
   };
 
   /* ================= UPDATE ================= */
   const updateRestaurant = async () => {
-    if (!form.name || !form.categorySlug) {
-      alert("Restaurant name and category are required");
+    if (!form.name || !form.categorySlug || !form.openTime || !form.closeTime) {
+      alert("Name, category, open time and close time are required");
       return;
     }
 
-    await api.put(`/restaurants/${editId}`, form);
-    closeModal();
-    fetchRestaurants();
+    if (form.openTime >= form.closeTime) {
+      alert("Close time must be after open time");
+      return;
+    }
+
+    try {
+      await api.put(`/restaurants/${editId}`, form);
+      closeModal();
+      fetchRestaurants();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update restaurant");
+    }
   };
 
   /* ================= CLOSE MODAL ================= */
   const closeModal = () => {
     setShowModal(false);
     setEditId(null);
-    setForm({
-      name: "",
-      address: "",
-      image: "",
-      categorySlug: "",
-      isOpen: true,
-    });
+    setForm(DEFAULT_FORM);
   };
 
   /* ================= TOGGLE ================= */
@@ -95,11 +110,7 @@ export default function Restaurants() {
       </div>
 
       {/* TABLE */}
-      <motion.div
-        className="dashboard-card"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
+      <motion.div className="dashboard-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="table-responsive">
           <table className="table table-modern">
             <thead>
@@ -117,33 +128,23 @@ export default function Restaurants() {
               {restaurants.map((r, i) => (
                 <tr key={r._id}>
                   <td>{i + 1}</td>
-                  <td>
-                    <strong>{r.name}</strong>
-                  </td>
+                  <td><strong>{r.name}</strong></td>
                   <td className="text-muted">{r.categorySlug}</td>
                   <td className="text-muted">{r.address || "—"}</td>
                   <td>
-                    <span
-                      className={`status-badge ${
-                        r.isOpen ? "completed" : "cancelled"
-                      }`}
-                    >
+                    <span className={`status-badge ${r.isOpen ? "completed" : "cancelled"}`}>
                       {r.isOpen ? "Open" : "Closed"}
                     </span>
                   </td>
 
                   <td className="text-end">
-                    {/* MENU */}
                     <button
                       className="btn btn-sm btn-outline-primary me-2"
-                      onClick={() =>
-                        navigate(`/admin/restaurants/${r._id}/menu`)
-                      }
+                      onClick={() => navigate(`/admin/restaurants/${r._id}/menu`)}
                     >
                       Menu
                     </button>
 
-                    {/* EDIT */}
                     <button
                       className="btn btn-sm btn-outline-warning me-2"
                       onClick={() => {
@@ -152,6 +153,8 @@ export default function Restaurants() {
                           address: r.address || "",
                           image: r.image || "",
                           categorySlug: r.categorySlug || "",
+                          openTime: r.openTime || "09:00",
+                          closeTime: r.closeTime || "23:00",
                           isOpen: r.isOpen ?? true,
                         });
                         setEditId(r._id);
@@ -161,12 +164,9 @@ export default function Restaurants() {
                       Edit
                     </button>
 
-                    {/* TOGGLE */}
                     <button
                       className={`btn btn-sm ${
-                        r.isOpen
-                          ? "btn-outline-danger"
-                          : "btn-outline-success"
+                        r.isOpen ? "btn-outline-danger" : "btn-outline-success"
                       }`}
                       onClick={() => toggleStatus(r._id)}
                     >
@@ -193,36 +193,53 @@ export default function Restaurants() {
         <div className="modal d-block" style={{ background: "rgba(0,0,0,.5)" }}>
           <div className="modal-dialog">
             <div className="modal-content">
+
               <div className="modal-header">
                 <h5>{editId ? "Edit Restaurant" : "Add Restaurant"}</h5>
                 <button className="btn-close" onClick={closeModal} />
               </div>
 
               <div className="modal-body">
+                <div className="row">
+                  <div className="col">
+                    <label className="form-label">Open Time</label>
+                    <input
+                      type="time"
+                      className="form-control mb-3"
+                      value={form.openTime}
+                      onChange={(e) => setForm({ ...form, openTime: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col">
+                    <label className="form-label">Close Time</label>
+                    <input
+                      type="time"
+                      className="form-control mb-3"
+                      value={form.closeTime}
+                      onChange={(e) => setForm({ ...form, closeTime: e.target.value })}
+                    />
+                  </div>
+                </div>
+
                 <input
                   className="form-control mb-3"
                   placeholder="Restaurant Name"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm({ ...form, name: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
 
                 <input
                   className="form-control mb-3"
                   placeholder="Banner Image URL"
                   value={form.image}
-                  onChange={(e) =>
-                    setForm({ ...form, image: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, image: e.target.value })}
                 />
 
                 <select
                   className="form-control mb-3"
                   value={form.categorySlug}
-                  onChange={(e) =>
-                    setForm({ ...form, categorySlug: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, categorySlug: e.target.value })}
                 >
                   <option value="">Select Category</option>
                   {CATEGORY_OPTIONS.map((c) => (
@@ -237,9 +254,7 @@ export default function Restaurants() {
                   placeholder="Address"
                   rows={3}
                   value={form.address}
-                  onChange={(e) =>
-                    setForm({ ...form, address: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
                 />
 
                 <div className="form-check form-switch mt-3">
@@ -247,13 +262,9 @@ export default function Restaurants() {
                     className="form-check-input"
                     type="checkbox"
                     checked={form.isOpen}
-                    onChange={(e) =>
-                      setForm({ ...form, isOpen: e.target.checked })
-                    }
+                    onChange={(e) => setForm({ ...form, isOpen: e.target.checked })}
                   />
-                  <label className="form-check-label">
-                    Restaurant Open
-                  </label>
+                  <label className="form-check-label">Restaurant Open</label>
                 </div>
               </div>
 
@@ -268,6 +279,7 @@ export default function Restaurants() {
                   {editId ? "Update" : "Save"}
                 </button>
               </div>
+
             </div>
           </div>
         </div>
