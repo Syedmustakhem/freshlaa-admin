@@ -29,9 +29,8 @@ export default function RestaurantMenu() {
     image: "",
     categoryKey: "",
     basePrice: "",
+    mrp: "",
     isAvailable: true,
-
-    // 🔥 NEW
     availableFrom: "",
     availableTo: "",
     deliveryTime: "20–30 mins",
@@ -39,8 +38,12 @@ export default function RestaurantMenu() {
 
   /* ================= FETCH MENU ================= */
   const fetchMenu = async () => {
-    const res = await api.get(`/hotel/menu/admin/${restaurantId}`);
-    setMenu(res.data.data || []);
+    try {
+      const res = await api.get(`/hotel/menu/admin/${restaurantId}`);
+      setMenu(res.data.data || []);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   useEffect(() => {
@@ -55,6 +58,7 @@ export default function RestaurantMenu() {
       image: "",
       categoryKey: "",
       basePrice: "",
+      mrp: "",
       isAvailable: true,
       availableFrom: "",
       availableTo: "",
@@ -65,30 +69,42 @@ export default function RestaurantMenu() {
   /* ================= SAVE ================= */
   const saveMenuItem = async () => {
     if (!form.name || !form.categoryKey || !form.basePrice) {
-      alert("Name, category and price are required");
+      alert("Name, category and base price are required");
       return;
     }
 
-    if (editItem) {
-      await api.put(`/hotel/menu/${editItem._id}`, form);
-    } else {
-      await api.post("/hotel/menu", {
-        ...form,
-        hotelId: restaurantId,
-      });
+    if (form.mrp && Number(form.mrp) < Number(form.basePrice)) {
+      alert("MRP cannot be less than Base Price");
+      return;
     }
 
-    setShowModal(false);
-    setEditItem(null);
-    resetForm();
-    fetchMenu();
+    const payload = {
+      ...form,
+      basePrice: Number(form.basePrice),
+      mrp: form.mrp ? Number(form.mrp) : undefined,
+      hotelId: restaurantId,
+    };
+
+    try {
+      if (editItem) {
+        await api.put(`/hotel/menu/${editItem._id}`, payload);
+      } else {
+        await api.post("/hotel/menu", payload);
+      }
+
+      setShowModal(false);
+      setEditItem(null);
+      resetForm();
+      fetchMenu();
+    } catch (err) {
+      alert("Failed to save item");
+    }
   };
 
   return (
     <AdminLayout>
       <h3 className="page-heading mb-4">Restaurant Menu</h3>
 
-      {/* ADD BUTTON */}
       <button
         className="btn btn-dark mb-3"
         onClick={() => {
@@ -100,7 +116,6 @@ export default function RestaurantMenu() {
         + Add Menu Item
       </button>
 
-      {/* TABLE */}
       <div className="dashboard-card">
         <table className="table table-modern">
           <thead>
@@ -120,17 +135,27 @@ export default function RestaurantMenu() {
               <tr key={item._id}>
                 <td><strong>{item.name}</strong></td>
                 <td className="text-muted">{item.categoryKey}</td>
-                <td>₹{item.basePrice}</td>
+
+                <td>
+                  <strong>₹{item.basePrice}</strong>
+                  {item.mrp && item.mrp > item.basePrice && (
+                    <span className="text-muted ms-2 text-decoration-line-through">
+                      ₹{item.mrp}
+                    </span>
+                  )}
+                </td>
+
                 <td>
                   {item.availableFrom && item.availableTo
                     ? `${item.availableFrom} – ${item.availableTo}`
                     : "All Day"}
                 </td>
+
                 <td>{item.deliveryTime || "—"}</td>
+
                 <td>
                   <span className={`status-badge ${item.isAvailable ? "completed" : "cancelled"}`}>
                     {item.isAvailable ? "Enabled" : "Disabled"}
-
                   </span>
                 </td>
 
@@ -145,6 +170,7 @@ export default function RestaurantMenu() {
                         image: item.image || "",
                         categoryKey: item.categoryKey || "",
                         basePrice: item.basePrice || "",
+                        mrp: item.mrp || "",
                         isAvailable: item.isAvailable ?? true,
                         availableFrom: item.availableFrom || "",
                         availableTo: item.availableTo || "",
@@ -156,22 +182,17 @@ export default function RestaurantMenu() {
                     Edit
                   </button>
 
-                 <button
-  className={`btn btn-sm ${
-    item.isAvailable
-      ? "btn-outline-danger"
-      : "btn-outline-success"
-  }`}
-  onClick={async () => {
-    await api.put(`/hotel/menu/${item._id}`, {
-      isAvailable: !item.isAvailable,
-    });
-    fetchMenu();
-  }}
->
-  {item.isAvailable ? "Disable" : "Enable"}
-</button>
-
+                  <button
+                    className={`btn btn-sm ${item.isAvailable ? "btn-outline-danger" : "btn-outline-success"}`}
+                    onClick={async () => {
+                      await api.put(`/hotel/menu/${item._id}`, {
+                        isAvailable: !item.isAvailable,
+                      });
+                      fetchMenu();
+                    }}
+                  >
+                    {item.isAvailable ? "Disable" : "Enable"}
+                  </button>
                 </td>
               </tr>
             ))}
@@ -208,13 +229,18 @@ export default function RestaurantMenu() {
                   onChange={(e) => setForm({ ...form, image: e.target.value })}
                 />
 
-                <input className="form-control mb-2" placeholder="Base Price" type="number"
+                <input className="form-control mb-2" type="number" placeholder="Base Price"
                   value={form.basePrice}
                   onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
                 />
 
+                <input className="form-control mb-2" type="number" placeholder="MRP (optional)"
+                  value={form.mrp}
+                  onChange={(e) => setForm({ ...form, mrp: e.target.value })}
+                />
+
                 <input className="form-control mb-2"
-                  placeholder="Delivery Time (e.g. 15–20 mins)"
+                  placeholder="Delivery Time"
                   value={form.deliveryTime}
                   onChange={(e) => setForm({ ...form, deliveryTime: e.target.value })}
                 />
@@ -228,24 +254,6 @@ export default function RestaurantMenu() {
                     <option key={c.slug} value={c.slug}>{c.name}</option>
                   ))}
                 </select>
-
-                <div className="row mb-2">
-                  <div className="col">
-                    <label className="small text-muted">Available From</label>
-                    <input type="time" className="form-control"
-                      value={form.availableFrom}
-                      onChange={(e) => setForm({ ...form, availableFrom: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="col">
-                    <label className="small text-muted">Available To</label>
-                    <input type="time" className="form-control"
-                      value={form.availableTo}
-                      onChange={(e) => setForm({ ...form, availableTo: e.target.value })}
-                    />
-                  </div>
-                </div>
 
                 <textarea className="form-control" rows={3} placeholder="Description"
                   value={form.description}
