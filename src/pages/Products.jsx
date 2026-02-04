@@ -9,6 +9,7 @@ export default function Products() {
 const [showAddModal, setShowAddModal] = useState(false);
 const [sections, setSections] = useState([]);
 const [categories, setCategories] = useState([]);
+const [subCategoryImage, setSubCategoryImage] = useState("");
 
 const emptyVariant = {
   label: "",
@@ -100,14 +101,21 @@ const deleteProduct = async (productId) => {
     })),
   });
 
-  if (product.sectionId) {
-    await fetchCategoriesBySection(product.sectionId);
-  }
+if (product.sectionId) {
+  await fetchCategoriesBySection(product.sectionId);
+
+  setEditProduct(prev => ({
+    ...prev,
+    category: product.category,
+    subCategory: product.category,
+  }));
+}
+
 };
 
   
 const saveEditProduct = async () => {
-  if (!editProduct.sectionId || !editProduct.subCategory || !editProduct.category) {
+if (!editProduct.sectionId || !editProduct.category) {
     alert("Section and category are required");
     return;
   }
@@ -120,8 +128,9 @@ const saveEditProduct = async () => {
         description: editProduct.description,
         isActive: editProduct.isActive,
         sectionId: editProduct.sectionId,
-        subCategory: editProduct.subCategory,
-        category: editProduct.category,
+        subCategory: editProduct.category, // slug
+category: editProduct.category,    // slug
+
         images: editProduct.images,
         variants: editProduct.variants,
       },
@@ -169,49 +178,77 @@ const saveNewProduct = async () => {
   if (
     !newProduct.name ||
     !newProduct.sectionId ||
-    !newProduct.subCategory ||
+    !newProduct.category ||
     !newProduct.images.length
   ) {
     alert("All required fields must be filled");
     return;
   }
-if (!newProduct.variants.some(v => v.isDefault)) {
-  alert("Please select a default variant");
-  return;
-}
+
+  if (!newProduct.variants.some(v => v.isDefault)) {
+    alert("Please select a default variant");
+    return;
+  }
 
   try {
-   const payload = {
-  name: newProduct.name,
-  description: newProduct.description,
-  sectionId: newProduct.sectionId,
-  subCategory: newProduct.subCategory,
-  category: newProduct.category,
-  images: newProduct.images,
-  variants: newProduct.variants.map(v => ({
-    label: v.label,
-    unit: v.unit || "kg",
-    value: Number(v.value || 1),
-    price: Number(v.price),
-    mrp: Number(v.mrp || v.price),
-    stock: Number(v.stock),
-    isDefault: v.isDefault,
-  })),
-};
+    const payload = {
+      name: newProduct.name,
+      description: newProduct.description,
+      sectionId: newProduct.sectionId,
+      category: newProduct.category,       // ✅ slug
+      subCategory: newProduct.category,    // ✅ slug (SAME VALUE)
+      images: newProduct.images,
+      variants: newProduct.variants.map(v => ({
+        label: v.label,
+        unit: v.unit || "kg",
+        value: Number(v.value || 1),
+        price: Number(v.price),
+        mrp: Number(v.mrp || v.price),
+        stock: Number(v.stock),
+        isDefault: v.isDefault,
+      })),
+    };
 
+    // 1️⃣ SAVE PRODUCT
     await api.post("/products/manual", payload, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
       },
     });
 
+    // 2️⃣ UPDATE SUB-CATEGORY IMAGE (OPTIONAL)
+    if (subCategoryImage) {
+      await api.patch(
+        `/admin/categories/${newProduct.category}/image`,
+        { image: subCategoryImage },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+          },
+        }
+      );
+    }
+
+    // 3️⃣ FULL RESET (THIS WAS MISSING)
     setShowAddModal(false);
+    setSubCategoryImage("");
+    setNewProduct({
+      name: "",
+      description: "",
+      sectionId: "",
+      category: "",
+      subCategory: "",
+      images: [""],
+      variants: [{ ...emptyVariant }],
+    });
+
     fetchProducts();
 
   } catch (err) {
     alert(err.response?.data?.message || "Failed to add product");
   }
 };
+
 
 const fetchCategoriesBySection = async (sectionId) => {
   if (!sectionId) {
@@ -231,12 +268,13 @@ const fetchCategoriesBySection = async (sectionId) => {
   setCategories(res.data.data || []);
 };
 const handleEditSectionChange = async (sectionId) => {
-  setEditProduct({
-    ...editProduct,
+  setEditProduct(prev => ({
+    ...prev,
     sectionId,
     subCategory: "",
     category: "",
-  });
+  }));
+
   await fetchCategoriesBySection(sectionId);
 };
 
@@ -298,14 +336,15 @@ const saveVariants = async () => {
         className="btn btn-dark"
        onClick={() => {
   setCategories([]);
+  setSubCategoryImage(""); // ✅ ADD THIS
   setNewProduct({
     name: "",
     description: "",
     sectionId: "",
     subCategory: "",
     category: "",
-    images: [""],               // ✅ REQUIRED
-    variants: [{ ...emptyVariant }], // ✅ GUARANTEED ONE VARIANT
+    images: [""],
+    variants: [{ ...emptyVariant }],
   });
   setShowAddModal(true);
 }}
@@ -470,11 +509,14 @@ const saveVariants = async () => {
   onChange={(e) => {
     const selected = categories.find(c => c.slug === e.target.value);
 
-    setNewProduct({
-      ...newProduct,
-      category: selected.slug,      // indexed slug
-      subCategory: selected.title,  // readable name
-    });
+  if (!selected) return;
+
+setNewProduct({
+  ...newProduct,
+  category: selected.slug,      // slug ONLY
+  subCategory: selected.slug,   // slug ONLY
+});
+
   }}
 >
   <option value="">
@@ -489,6 +531,16 @@ const saveVariants = async () => {
 </select>
 
               </div>
+              <label className="form-label">
+  Sub-Category Image (optional)
+</label>
+<input
+  className="form-control mb-2"
+  placeholder="Image URL for this sub-category"
+  value={subCategoryImage || ""}
+  onChange={(e) => setSubCategoryImage(e.target.value)}
+/>
+
 {/* IMAGES */}
 <div className="border rounded p-3 mb-3">
   <h6 className="mb-2">🖼 Product Images</h6>
@@ -641,29 +693,32 @@ const saveVariants = async () => {
             <div className="modal-footer">
              <button
   className="btn btn-secondary"
-  onClick={() => {
-    setShowAddModal(false);
-    setNewProduct({
-      name: "",
-      description: "",
-      sectionId: "",
-      subCategory: "",
-      category: "",
-      images: [""],
-      variants: [{ ...emptyVariant }],
-    });
-  }}
+ onClick={() => {
+  setShowAddModal(false);
+  setSubCategoryImage(""); // ✅ ADD THIS
+  setNewProduct({
+    name: "",
+    description: "",
+    sectionId: "",
+    subCategory: "",
+    category: "",
+    images: [""],
+    variants: [{ ...emptyVariant }],
+  });
+}}
+
 >
   Cancel
 </button>
 
               <button
                 className="btn btn-dark"
-                disabled={
-                  !newProduct.name ||
-                  !newProduct.sectionId ||
-                  !newProduct.subCategory
-                }
+               disabled={
+  !newProduct.name ||
+  !newProduct.sectionId ||
+  !newProduct.category
+}
+
                 onClick={saveNewProduct}
               >
                 Save Product
@@ -723,11 +778,14 @@ const saveVariants = async () => {
   value={editProduct.category}
   onChange={(e) => {
     const selected = categories.find(c => c.slug === e.target.value);
-    setEditProduct({
-      ...editProduct,
-      category: selected.slug,
-      subCategory: selected.title,
-    });
+  if (!selected) return;
+
+setEditProduct({
+  ...editProduct,
+  category: selected.slug,
+  subCategory: selected.slug,
+});
+
   }}
 >
   <option value="">
