@@ -23,18 +23,22 @@ export default function RestaurantMenu() {
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    image: "",
-    categoryKey: "",
-    basePrice: "",
-    mrp: "",
-    isAvailable: true,
-    availableFrom: "",
-    availableTo: "",
-    deliveryTime: "20–30 mins",
-  });
+ const [form, setForm] = useState({
+  name: "",
+  description: "",
+  image: "",
+  categoryKey: "",
+  foodType: "VEG",
+  basePrice: "",
+  mrp: "",
+  isAvailable: true,
+  isBestseller: false,     // ⭐
+  isRecommended: false,    // 👍
+  availableFrom: "",
+  availableTo: "",
+  deliveryTime: "20–30 mins",
+});
+
 
   /* ================= FETCH MENU ================= */
   const fetchMenu = async () => {
@@ -51,55 +55,63 @@ export default function RestaurantMenu() {
   }, [restaurantId]);
 
   /* ================= RESET ================= */
-  const resetForm = () => {
-    setForm({
-      name: "",
-      description: "",
-      image: "",
-      categoryKey: "",
-      basePrice: "",
-      mrp: "",
-      isAvailable: true,
-      availableFrom: "",
-      availableTo: "",
-      deliveryTime: "20–30 mins",
-    });
-  };
+ const resetForm = () => {
+  setForm({
+    name: "",
+    description: "",
+    image: "",
+    categoryKey: "",
+    foodType: "VEG", // ✅ RESET DEFAULT
+    basePrice: "",
+    mrp: "",
+    isAvailable: true,
+    availableFrom: "",
+    availableTo: "",
+    deliveryTime: "20–30 mins",
+  });
+};
+
 
   /* ================= SAVE ================= */
-  const saveMenuItem = async () => {
-    if (!form.name || !form.categoryKey || !form.basePrice) {
-      alert("Name, category and base price are required");
-      return;
-    }
+ const saveMenuItem = async () => {
+  if (!form.name || !form.categoryKey || !form.basePrice) {
+    alert("Name, category and base price are required");
+    return;
+  }
 
-    if (form.mrp && Number(form.mrp) < Number(form.basePrice)) {
-      alert("MRP cannot be less than Base Price");
-      return;
-    }
+  if (!form.foodType) {
+    alert("Please select Veg or Non-Veg");
+    return;
+  }
 
-    const payload = {
-      ...form,
-      basePrice: Number(form.basePrice),
-      mrp: form.mrp ? Number(form.mrp) : undefined,
-      hotelId: restaurantId,
-    };
+  if (form.mrp && Number(form.mrp) < Number(form.basePrice)) {
+    alert("MRP cannot be less than Base Price");
+    return;
+  }
 
-    try {
-      if (editItem) {
-        await api.put(`/hotel/menu/${editItem._id}`, payload);
-      } else {
-        await api.post("/hotel/menu", payload);
-      }
-
-      setShowModal(false);
-      setEditItem(null);
-      resetForm();
-      fetchMenu();
-    } catch (err) {
-      alert("Failed to save item");
-    }
+  const payload = {
+    ...form,
+    basePrice: Number(form.basePrice),
+    mrp: form.mrp ? Number(form.mrp) : undefined,
+    hotelId: restaurantId,
   };
+
+  try {
+    if (editItem) {
+      await api.put(`/hotel/menu/${editItem._id}`, payload);
+    } else {
+      await api.post("/hotel/menu", payload);
+    }
+
+    setShowModal(false);
+    setEditItem(null);
+    resetForm();
+    fetchMenu();
+  } catch (err) {
+    alert("Failed to save item");
+  }
+};
+
 
   return (
     <AdminLayout>
@@ -122,6 +134,8 @@ export default function RestaurantMenu() {
             <tr>
               <th>Item</th>
               <th>Category</th>
+              <th>Type</th>
+
               <th>Price</th>
               <th>Timing</th>
               <th>Delivery</th>
@@ -135,6 +149,9 @@ export default function RestaurantMenu() {
               <tr key={item._id}>
                 <td><strong>{item.name}</strong></td>
                 <td className="text-muted">{item.categoryKey}</td>
+<td>
+  {item.foodType === "VEG" ? "🟢 Veg" : "🔴 Non-Veg"}
+</td>
 
                 <td>
                   <strong>₹{item.basePrice}</strong>
@@ -164,18 +181,23 @@ export default function RestaurantMenu() {
                     className="btn btn-sm btn-outline-warning me-2"
                     onClick={() => {
                       setEditItem(item);
-                      setForm({
-                        name: item.name || "",
-                        description: item.description || "",
-                        image: item.image || "",
-                        categoryKey: item.categoryKey || "",
-                        basePrice: item.basePrice || "",
-                        mrp: item.mrp || "",
-                        isAvailable: item.isAvailable ?? true,
-                        availableFrom: item.availableFrom || "",
-                        availableTo: item.availableTo || "",
-                        deliveryTime: item.deliveryTime || "20–30 mins",
-                      });
+     setForm({
+  name: item.name || "",
+  description: item.description || "",
+  image: item.image || "",
+  categoryKey: item.categoryKey || "",
+  foodType: item.foodType || "VEG",
+  basePrice: item.basePrice || "",
+  mrp: item.mrp || "",
+  isAvailable: item.isAvailable ?? true,
+  isBestseller: item.isBestseller ?? false,   // ⭐
+  isRecommended: item.isRecommended ?? false, // 👍
+  availableFrom: item.availableFrom || "",
+  availableTo: item.availableTo || "",
+  deliveryTime: item.deliveryTime || "20–30 mins",
+});
+
+
                       setShowModal(true);
                     }}
                   >
@@ -199,9 +221,10 @@ export default function RestaurantMenu() {
 
             {!menu.length && (
               <tr>
-                <td colSpan="7" className="text-center text-muted py-5">
-                  No menu items added
-                </td>
+               <td colSpan="8" className="text-center text-muted py-5">
+  No menu items added
+</td>
+
               </tr>
             )}
           </tbody>
@@ -254,6 +277,41 @@ export default function RestaurantMenu() {
                     <option key={c.slug} value={c.slug}>{c.name}</option>
                   ))}
                 </select>
+<select
+  className="form-control mb-2"
+  value={form.foodType}
+  onChange={(e) => setForm({ ...form, foodType: e.target.value })}
+>
+  <option value="VEG">🟢 Veg</option>
+  <option value="NON_VEG">🔴 Non-Veg</option>
+</select>
+<div className="form-check mb-2">
+  <input
+    className="form-check-input"
+    type="checkbox"
+    checked={form.isBestseller}
+    onChange={(e) =>
+      setForm({ ...form, isBestseller: e.target.checked })
+    }
+  />
+  <label className="form-check-label">
+    ⭐ Bestseller
+  </label>
+</div>
+
+<div className="form-check mb-2">
+  <input
+    className="form-check-input"
+    type="checkbox"
+    checked={form.isRecommended}
+    onChange={(e) =>
+      setForm({ ...form, isRecommended: e.target.checked })
+    }
+  />
+  <label className="form-check-label">
+    👍 Recommended
+  </label>
+</div>
 
                 <textarea className="form-control" rows={3} placeholder="Description"
                   value={form.description}
