@@ -11,9 +11,25 @@ const CATEGORY_OPTIONS = [
   { name: "Biryani", slug: "biryani" },
   { name: "Home Food", slug: "home-food" },
   { name: "Curries", slug: "curries" },
-  { name: "Non-Veg", slug: "non-veg" },
   { name: "Fast Food", slug: "fast-food" },
   { name: "Pani Puri & More", slug: "pani-puri-more" },
+];
+const MENU_FILTER_OPTIONS = [
+  { label: "🍕 Pizza", value: "pizza" },
+  { label: "🍔 Burger", value: "burger" },
+  { label: "🥤 Juices", value: "juices" },
+  { label: "🥗 Veg Starters", value: "veg-starters" },
+  { label: "🍗 Non-Veg Starters", value: "non-veg-starters" },
+  { label: "🍛 Curries", value: "curries" },
+  { label: "🍚 Fried Rice", value: "fried-rice" },
+  { label: "🍖 Biryani", value: "biryani" },
+  { label: "🍲 Non-Veg Curries", value: "non-veg-curries" },
+  { label: "🍟 Fast Food", value: "fast-food" },
+  { label: "🥛 Butter Milk", value: "butter-milk" },
+  { label: "🍯 Dates Juices", value: "dates-juices" },
+  { label: "🥜 Dry Fruit Juices", value: "dry-fruit-juices" },
+  { label: "🥚 Egg", value: "egg" },
+  { label: "🍟 French Fries", value: "french-fries" },
 ];
 
 export default function RestaurantMenu() {
@@ -22,22 +38,22 @@ export default function RestaurantMenu() {
   const [menu, setMenu] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
-
- const [form, setForm] = useState({
+const [form, setForm] = useState({
   name: "",
   description: "",
   image: "",
   categoryKey: "",
-  foodType: "VEG",
   basePrice: "",
   mrp: "",
+  filters: [],          // ✅ ONLY THIS
   isAvailable: true,
-  isBestseller: false,     // ⭐
-  isRecommended: false,    // 👍
+  isBestseller: false,
+  isRecommended: false,
   availableFrom: "",
   availableTo: "",
   deliveryTime: "20–30 mins",
 });
+
 
 
   /* ================= FETCH MENU ================= */
@@ -61,10 +77,12 @@ export default function RestaurantMenu() {
     description: "",
     image: "",
     categoryKey: "",
-    foodType: "VEG", // ✅ RESET DEFAULT
     basePrice: "",
     mrp: "",
+    filters: [],
     isAvailable: true,
+    isBestseller: false,
+    isRecommended: false,
     availableFrom: "",
     availableTo: "",
     deliveryTime: "20–30 mins",
@@ -74,15 +92,14 @@ export default function RestaurantMenu() {
 
   /* ================= SAVE ================= */
  const saveMenuItem = async () => {
-  if (!form.name || !form.categoryKey || !form.basePrice) {
-    alert("Name, category and base price are required");
-    return;
-  }
-
-  if (!form.foodType) {
-    alert("Please select Veg or Non-Veg");
-    return;
-  }
+ if (!form.name || !form.categoryKey || !form.basePrice) {
+  alert("Name, category and base price are required");
+  return;
+}
+if (!form.filters.length) {
+  alert("Please select at least one menu filter");
+  return;
+}
 
   if (form.mrp && Number(form.mrp) < Number(form.basePrice)) {
     alert("MRP cannot be less than Base Price");
@@ -134,7 +151,8 @@ export default function RestaurantMenu() {
             <tr>
               <th>Item</th>
               <th>Category</th>
-              <th>Type</th>
+
+<th>Filters</th>
 
               <th>Price</th>
               <th>Timing</th>
@@ -149,18 +167,19 @@ export default function RestaurantMenu() {
               <tr key={item._id}>
                 <td><strong>{item.name}</strong></td>
                 <td className="text-muted">{item.categoryKey}</td>
-<td>
-  {item.foodType === "VEG" ? "🟢 Veg" : "🔴 Non-Veg"}
+              <td className="text-muted">
+  {item.filters?.length ? item.filters.join(", ") : "—"}
 </td>
 
-                <td>
-                  <strong>₹{item.basePrice}</strong>
-                  {item.mrp && item.mrp > item.basePrice && (
-                    <span className="text-muted ms-2 text-decoration-line-through">
-                      ₹{item.mrp}
-                    </span>
-                  )}
-                </td>
+<td>
+  <strong>₹{item.basePrice}</strong>
+  {item.mrp && item.mrp > item.basePrice && (
+    <span className="text-muted ms-2 text-decoration-line-through">
+      ₹{item.mrp}
+    </span>
+  )}
+</td>
+
 
                 <td>
                   {item.availableFrom && item.availableTo
@@ -181,21 +200,22 @@ export default function RestaurantMenu() {
                     className="btn btn-sm btn-outline-warning me-2"
                     onClick={() => {
                       setEditItem(item);
-     setForm({
+setForm({
   name: item.name || "",
   description: item.description || "",
   image: item.image || "",
   categoryKey: item.categoryKey || "",
-  foodType: item.foodType || "VEG",
   basePrice: item.basePrice || "",
   mrp: item.mrp || "",
+  filters: item.filters || [],
   isAvailable: item.isAvailable ?? true,
-  isBestseller: item.isBestseller ?? false,   // ⭐
-  isRecommended: item.isRecommended ?? false, // 👍
+  isBestseller: item.isBestseller ?? false,
+  isRecommended: item.isRecommended ?? false,
   availableFrom: item.availableFrom || "",
   availableTo: item.availableTo || "",
   deliveryTime: item.deliveryTime || "20–30 mins",
 });
+
 
 
                       setShowModal(true);
@@ -277,14 +297,36 @@ export default function RestaurantMenu() {
                     <option key={c.slug} value={c.slug}>{c.name}</option>
                   ))}
                 </select>
-<select
-  className="form-control mb-2"
-  value={form.foodType}
-  onChange={(e) => setForm({ ...form, foodType: e.target.value })}
->
-  <option value="VEG">🟢 Veg</option>
-  <option value="NON_VEG">🔴 Non-Veg</option>
-</select>
+<div className="mb-3">
+  <label className="form-label fw-bold">Menu Filters</label>
+
+  <div className="d-flex flex-wrap gap-2">
+    {MENU_FILTER_OPTIONS.map((f) => (
+      <label key={f.value} className="form-check">
+        <input
+          type="checkbox"
+          className="form-check-input"
+          checked={form.filters.includes(f.value)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setForm({
+                ...form,
+                filters: [...form.filters, f.value],
+              });
+            } else {
+              setForm({
+                ...form,
+                filters: form.filters.filter(x => x !== f.value),
+              });
+            }
+          }}
+        />
+        <span className="ms-2">{f.label}</span>
+      </label>
+    ))}
+  </div>
+</div>
+
 <div className="form-check mb-2">
   <input
     className="form-check-input"
