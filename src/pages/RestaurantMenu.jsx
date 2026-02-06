@@ -45,14 +45,16 @@ const [form, setForm] = useState({
   categoryKey: "",
   basePrice: "",
   mrp: "",
-  filters: [],          // ✅ ONLY THIS
+  variants: [], // ✅ ADD THIS
+  filters: [],
   isAvailable: true,
   isBestseller: false,
   isRecommended: false,
   availableFrom: "",
   availableTo: "",
-  deliveryTime: "20–30 mins",
+  deliveryTime: "20-30 mins",
 });
+
 
 
 
@@ -71,7 +73,7 @@ const [form, setForm] = useState({
   }, [restaurantId]);
 
   /* ================= RESET ================= */
- const resetForm = () => {
+const resetForm = () => {
   setForm({
     name: "",
     description: "",
@@ -79,26 +81,47 @@ const [form, setForm] = useState({
     categoryKey: "",
     basePrice: "",
     mrp: "",
+    variants: [], // ✅ ADD THIS
     filters: [],
     isAvailable: true,
     isBestseller: false,
     isRecommended: false,
     availableFrom: "",
     availableTo: "",
-    deliveryTime: "20–30 mins",
+    deliveryTime: "20-30 mins",
   });
 };
 
 
+
   /* ================= SAVE ================= */
  const saveMenuItem = async () => {
- if (!form.name || !form.categoryKey || !form.basePrice) {
-  alert("Name, category and base price are required");
+if (!form.name || !form.categoryKey) {
+  alert("Name and category are required");
   return;
 }
+
+if (!form.basePrice && form.variants.length === 0) {
+  alert("Either base price or at least one variant is required");
+  return;
+}
+
 if (!form.filters.length) {
   alert("Please select at least one menu filter");
   return;
+}
+if (form.variants.length > 0) {
+  for (const v of form.variants) {
+    if (!v.label || !v.price) {
+      alert("Each variant must have label and price");
+      return;
+    }
+
+    if (v.mrp && Number(v.mrp) < Number(v.price)) {
+      alert("Variant MRP cannot be less than price");
+      return;
+    }
+  }
 }
 
   if (form.mrp && Number(form.mrp) < Number(form.basePrice)) {
@@ -106,12 +129,26 @@ if (!form.filters.length) {
     return;
   }
 
-  const payload = {
-    ...form,
-    basePrice: Number(form.basePrice),
-    mrp: form.mrp ? Number(form.mrp) : undefined,
-    hotelId: restaurantId,
-  };
+ const payload = {
+  ...form,
+  basePrice:
+    form.variants.length > 0
+      ? undefined
+      : Number(form.basePrice),
+  mrp:
+    form.variants.length > 0
+      ? undefined
+      : form.mrp
+      ? Number(form.mrp)
+      : undefined,
+  variants: form.variants.map(v => ({
+    label: v.label,
+    price: Number(v.price),
+    mrp: v.mrp ? Number(v.mrp) : undefined,
+  })),
+  hotelId: restaurantId,
+};
+
 
   try {
     if (editItem) {
@@ -165,35 +202,58 @@ if (!form.filters.length) {
           <tbody>
             {menu.map((item) => (
               <tr key={item._id}>
-                <td><strong>{item.name}</strong></td>
-                <td className="text-muted">{item.categoryKey}</td>
-              <td className="text-muted">
-  {item.filters?.length ? item.filters.join(", ") : "—"}
-</td>
+  {/* ITEM */}
+  <td><strong>{item.name}</strong></td>
 
-<td>
-  <strong>₹{item.basePrice}</strong>
-  {item.mrp && item.mrp > item.basePrice && (
-    <span className="text-muted ms-2 text-decoration-line-through">
-      ₹{item.mrp}
+  {/* CATEGORY */}
+  <td className="text-muted">{item.categoryKey}</td>
+
+  {/* FILTERS */}
+  <td className="text-muted">
+    {item.filters?.length ? item.filters.join(", ") : "—"}
+  </td>
+
+  {/* PRICE (VARIANT AWARE) */}
+  <td>
+    {item.variants?.length ? (
+      <>
+        <strong>
+          From ₹{Math.min(...item.variants.map(v => v.price))}
+        </strong>
+        <div className="text-muted small">
+          {item.variants.map(v => `${v.label} ₹${v.price}`).join(", ")}
+        </div>
+      </>
+    ) : (
+      <>
+        <strong>₹{item.basePrice}</strong>
+        {item.mrp && item.mrp > item.basePrice && (
+          <span className="text-muted ms-2 text-decoration-line-through">
+            ₹{item.mrp}
+          </span>
+        )}
+      </>
+    )}
+  </td>
+
+  {/* TIMING */}
+  <td>
+    {item.availableFrom && item.availableTo
+      ? `${item.availableFrom} – ${item.availableTo}`
+      : "All Day"}
+  </td>
+
+  {/* DELIVERY */}
+  <td>{item.deliveryTime || "—"}</td>
+
+  {/* STATUS */}
+  <td>
+    <span className={`status-badge ${item.isAvailable ? "completed" : "cancelled"}`}>
+      {item.isAvailable ? "Enabled" : "Disabled"}
     </span>
-  )}
-</td>
+  </td>
 
-
-                <td>
-                  {item.availableFrom && item.availableTo
-                    ? `${item.availableFrom} – ${item.availableTo}`
-                    : "All Day"}
-                </td>
-
-                <td>{item.deliveryTime || "—"}</td>
-
-                <td>
-                  <span className={`status-badge ${item.isAvailable ? "completed" : "cancelled"}`}>
-                    {item.isAvailable ? "Enabled" : "Disabled"}
-                  </span>
-                </td>
+  
 
                 <td className="text-end">
                   <button
@@ -207,13 +267,22 @@ setForm({
   categoryKey: item.categoryKey || "",
   basePrice: item.basePrice || "",
   mrp: item.mrp || "",
+  variants: item.variants
+  ? item.variants.map(v => ({
+      label: v.label,
+      price: String(v.price),
+      mrp: v.mrp ? String(v.mrp) : "",
+    }))
+  : [],
+
+ // ✅ ADD THIS
   filters: item.filters || [],
   isAvailable: item.isAvailable ?? true,
   isBestseller: item.isBestseller ?? false,
   isRecommended: item.isRecommended ?? false,
   availableFrom: item.availableFrom || "",
   availableTo: item.availableTo || "",
-  deliveryTime: item.deliveryTime || "20–30 mins",
+  deliveryTime: item.deliveryTime || "20-30 mins",
 });
 
 
@@ -227,10 +296,15 @@ setForm({
                   <button
                     className={`btn btn-sm ${item.isAvailable ? "btn-outline-danger" : "btn-outline-success"}`}
                     onClick={async () => {
-                      await api.put(`/hotel/menu/${item._id}`, {
-                        isAvailable: !item.isAvailable,
-                      });
-                      fetchMenu();
+                     try {
+  await api.put(`/hotel/menu/${item._id}`, {
+    isAvailable: !item.isAvailable,
+  });
+  fetchMenu();
+} catch {
+  alert("Failed to update status");
+}
+
                     }}
                   >
                     {item.isAvailable ? "Disable" : "Enable"}
@@ -258,7 +332,12 @@ setForm({
             <div className="modal-content">
               <div className="modal-header">
                 <h5>{editItem ? "Edit Menu Item" : "Add Menu Item"}</h5>
-                <button className="btn-close" onClick={() => setShowModal(false)} />
+                <button className="btn-close" onClick={() => {
+  setShowModal(false);
+  setEditItem(null);
+  resetForm();
+}}
+ />
               </div>
 
               <div className="modal-body">
@@ -272,15 +351,116 @@ setForm({
                   onChange={(e) => setForm({ ...form, image: e.target.value })}
                 />
 
-                <input className="form-control mb-2" type="number" placeholder="Base Price"
-                  value={form.basePrice}
-                  onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
-                />
+              {form.variants.length === 0 && (
+  <>
+    <input
+      className="form-control mb-2"
+      type="number"
+      placeholder="Base Price"
+      value={form.basePrice}
+      onChange={(e) =>
+        setForm({ ...form, basePrice: e.target.value })
+      }
+    />
 
-                <input className="form-control mb-2" type="number" placeholder="MRP (optional)"
-                  value={form.mrp}
-                  onChange={(e) => setForm({ ...form, mrp: e.target.value })}
-                />
+    <input
+      className="form-control mb-2"
+      type="number"
+      placeholder="MRP (optional)"
+      value={form.mrp}
+      onChange={(e) =>
+        setForm({ ...form, mrp: e.target.value })
+      }
+    />
+  </>
+)}
+
+<div className="mb-3">
+  <label className="form-label fw-bold">Variants (Half / Full)</label>
+
+  {form.variants.map((v, index) => (
+    <div key={index} className="border rounded p-2 mb-2">
+      <div className="row g-2">
+        <div className="col">
+          <input
+            className="form-control"
+            placeholder="Label (e.g. Half)"
+            value={v.label}
+            onChange={(e) => {
+              const variants = [...form.variants];
+              variants[index].label = e.target.value;
+              setForm({ ...form, variants });
+            }}
+          />
+        </div>
+
+        <div className="col">
+          <input
+            type="number"
+            className="form-control"
+            placeholder="Price"
+            value={v.price}
+            onChange={(e) => {
+              const variants = [...form.variants];
+              variants[index].price = e.target.value;
+              setForm({ ...form, variants });
+            }}
+          />
+        </div>
+
+        <div className="col">
+          <input
+            type="number"
+            className="form-control"
+            placeholder="MRP"
+            value={v.mrp || ""}
+            onChange={(e) => {
+              const variants = [...form.variants];
+              variants[index].mrp = e.target.value;
+              setForm({ ...form, variants });
+            }}
+          />
+        </div>
+
+        <div className="col-auto">
+          <button
+            className="btn btn-outline-danger"
+            onClick={() => {
+              setForm({
+                ...form,
+                variants: form.variants.filter((_, i) => i !== index),
+              });
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  ))}
+
+
+<button
+  type="button"
+  className="btn btn-outline-dark btn-sm"
+  onClick={() =>
+    setForm({
+      ...form,
+      basePrice: "",
+      mrp: "",
+      variants: [
+        ...form.variants,
+        { label: "", price: "", mrp: "" },
+      ],
+    })
+  }
+>
+  + Add Variant
+</button>
+
+
+
+</div>
 
                 <input className="form-control mb-2"
                   placeholder="Delivery Time"
