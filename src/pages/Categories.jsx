@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
+import { Link } from "react-router-dom";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -24,14 +25,21 @@ const res = await api.get("/admin/categories");
   }, []);
 
   return (
-    <AdminLayout>
+  <AdminLayout>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <h3 className="page-heading">Categories</h3>
 
-      <motion.div
-        className="dashboard-card"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <Link to="/admin/add-category" className="btn btn-primary">
+        + Add Category
+      </Link>
+    </div>
+
+    <motion.div
+      className="dashboard-card"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+
         <div className="table-responsive">
           <table className="table table-modern">
             <thead>

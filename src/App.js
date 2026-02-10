@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomeLayout from "./pages/HomeLayout";
+import AddCategory from "./pages/AddCategory";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -60,6 +61,7 @@ export default function App() {
   element={<RestaurantMenu />}
 />
 
+<Route path="/admin/add-category" element={<AddCategory />} />
 
           {/* GLOBAL ORDERS */}
           <Route
