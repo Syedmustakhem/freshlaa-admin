@@ -16,6 +16,28 @@ export default function AdminLayout({ children }) {
     }
   }, []);
 
+  /* 🚫 Close mobile menu when clicking outside */
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (mobileOpen && !e.target.closest('.admin-sidebar') && !e.target.closest('.mobile-menu-btn')) {
+        setMobileOpen(false);
+      }
+    };
+
+    if (mobileOpen) {
+      document.addEventListener('click', handleClickOutside);
+      // Prevent body scroll when mobile menu is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   /* 🔔 Enable sound + push */
   const enableNotificationsAndSound = async () => {
     try {
@@ -58,6 +80,14 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="admin-shell">
+      {/* MOBILE BACKDROP */}
+      {mobileOpen && (
+        <div 
+          className="mobile-backdrop"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
       <aside className={`admin-sidebar ${mobileOpen ? "open" : ""}`}>
         <Sidebar onClose={() => setMobileOpen(false)} />
@@ -74,16 +104,17 @@ export default function AdminLayout({ children }) {
             >
               ☰
             </button>
-            <h5 className="page-title">FreshLaa</h5>
+            <h5 className="page-title">FreshLaa Admin</h5>
           </div>
 
           <div className="topbar-actions">
             <NotificationBell />
             <button
-              className="btn btn-sm btn-outline-success"
+              className="btn btn-success"
               onClick={enableNotificationsAndSound}
+              style={{ whiteSpace: 'nowrap' }}
             >
-              Enable Notifications
+              🔔 Enable Alerts
             </button>
             <AdminAvatar />
           </div>
