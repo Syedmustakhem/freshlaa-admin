@@ -132,11 +132,6 @@ export default function RestaurantMenu() {
       return false;
     }
 
-    if (!form.categoryKey) {
-      alert("⚠️ Please select a category");
-      return false;
-    }
-
     if (!form.filters.length) {
       alert("⚠️ Please select at least one menu filter");
       return false;
@@ -603,7 +598,7 @@ export default function RestaurantMenu() {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Category *</label>
+<label>Category (Optional)</label>
                       <select
                         value={form.categoryKey}
                         onChange={(e) => setForm({ ...form, categoryKey: e.target.value })}
