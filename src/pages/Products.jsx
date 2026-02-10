@@ -102,7 +102,7 @@ const deleteProduct = async (productId) => {
   });
 
 if (product.sectionId) {
-  await fetchCategoriesBySection(product.sectionId);
+await fetchCategories(product.sectionId || null);
 
   setEditProduct(prev => ({
     ...prev,
@@ -115,10 +115,11 @@ if (product.sectionId) {
 
   
 const saveEditProduct = async () => {
-if (!editProduct.sectionId || !editProduct.category) {
-    alert("Section and category are required");
-    return;
-  }
+if (!editProduct.category) {
+  alert("Category is required");
+  return;
+}
+
 
   try {
     await api.put(
@@ -175,12 +176,12 @@ const setNewDefaultVariant = (index) => {
 };
 
 const saveNewProduct = async () => {
-  if (
-    !newProduct.name ||
-    !newProduct.sectionId ||
-    !newProduct.category ||
-    !newProduct.images.length
-  ) {
+ if (
+  !newProduct.name ||
+  !newProduct.category ||
+  !newProduct.images.length
+)
+ {
     alert("All required fields must be filled");
     return;
   }
@@ -194,7 +195,7 @@ const saveNewProduct = async () => {
     const payload = {
       name: newProduct.name,
       description: newProduct.description,
-      sectionId: newProduct.sectionId,
+sectionId: newProduct.sectionId || null,
       category: newProduct.category,       // ✅ slug
       subCategory: newProduct.category,    // ✅ slug (SAME VALUE)
       images: newProduct.images,
@@ -250,23 +251,28 @@ const saveNewProduct = async () => {
 };
 
 
-const fetchCategoriesBySection = async (sectionId) => {
-  if (!sectionId) {
-    setCategories([]);
-    return;
-  }
+const fetchCategories = async (sectionId = null) => {
+  try {
+    let url = "/admin/categories";
 
-  const res = await api.get(
-    `/admin/categories?sectionId=${sectionId}`,
-    {
+    if (sectionId) {
+      url += `?sectionId=${sectionId}`;
+    } else {
+      url += `?displayType=top`;
+    }
+
+    const res = await api.get(url, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
       },
-    }
-  );
+    });
 
-  setCategories(res.data.data || []);
+    setCategories(res.data.data || []);
+  } catch (err) {
+    console.error("Failed to load categories", err);
+  }
 };
+
 const handleEditSectionChange = async (sectionId) => {
   setEditProduct(prev => ({
     ...prev,
@@ -275,7 +281,7 @@ const handleEditSectionChange = async (sectionId) => {
     category: "",
   }));
 
-  await fetchCategoriesBySection(sectionId);
+await fetchCategories(sectionId || null);
 };
 
   /* ================= VARIANT HELPERS ================= */
@@ -335,7 +341,7 @@ const saveVariants = async () => {
       <button
         className="btn btn-dark"
        onClick={() => {
-  setCategories([]);
+fetchCategories(null); // load top categories initially
   setSubCategoryImage(""); // ✅ ADD THIS
   setNewProduct({
     name: "",
@@ -479,18 +485,19 @@ const saveVariants = async () => {
 <select
   className="form-control mb-3"
   value={newProduct.sectionId}
-  onChange={(e) => {
-    const sectionId = e.target.value;
+ onChange={(e) => {
+  const sectionId = e.target.value;
 
-    setNewProduct({
-      ...newProduct,
-      sectionId,
-      subCategory: "",
-      category: "",
-    });
+  setNewProduct({
+    ...newProduct,
+    sectionId,
+    subCategory: "",
+    category: "",
+  });
 
-    fetchCategoriesBySection(sectionId);
-  }}
+  fetchCategories(sectionId || null);
+}}
+
 >
   <option value="">Select Section</option>
   {sections.map(s => (
@@ -713,11 +720,11 @@ setNewProduct({
 
               <button
                 className="btn btn-dark"
-               disabled={
+      disabled={
   !newProduct.name ||
-  !newProduct.sectionId ||
   !newProduct.category
 }
+
 
                 onClick={saveNewProduct}
               >
