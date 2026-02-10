@@ -33,7 +33,17 @@ const MENU_FILTER_OPTIONS = [
   { label: "🥜 Dry Fruit Juices", value: "dry-fruit-juices" },
   { label: "🥚 Egg", value: "egg" },
   { label: "🍟 French Fries", value: "french-fries" },
+
+  // ✅ Newly Added Filters
+  { label: "🍗 Dum Biryani", value: "dum-biryani" },
+  { label: "🍗 Chicken Mandi", value: "chicken-mandi" },
+  { label: "🍖 Mutton Mandi", value: "mutton-mandi" },
+  { label: "🐟 Fish", value: "fish" },
+  { label: "🥘 Dry Items", value: "dry-items" },
+  { label: "🍞 Roti Items", value: "roti-items" },
+  { label: "🥦 Veg Curries", value: "veg-curries" },
 ];
+
 
 /* ADD-ON PRESETS */
 const ADDON_PRESETS = [
