@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 import api from "../services/api";
@@ -33,8 +33,6 @@ const MENU_FILTER_OPTIONS = [
   { label: "🥜 Dry Fruit Juices", value: "dry-fruit-juices" },
   { label: "🥚 Egg", value: "egg" },
   { label: "🍟 French Fries", value: "french-fries" },
-
-  // ✅ Newly Added Filters
   { label: "🍗 Dum Biryani", value: "dum-biryani" },
   { label: "🍗 Chicken Mandi", value: "chicken-mandi" },
   { label: "🍖 Mutton Mandi", value: "mutton-mandi" },
@@ -44,7 +42,6 @@ const MENU_FILTER_OPTIONS = [
   { label: "🥦 Veg Curries", value: "veg-curries" },
 ];
 
-
 /* ADD-ON PRESETS */
 const ADDON_PRESETS = [
   { name: "Extra Cheese", price: 30 },
@@ -53,6 +50,26 @@ const ADDON_PRESETS = [
   { name: "Extra Butter", price: 15 },
   { name: "Boiled Egg", price: 20 },
 ];
+
+/* INITIAL FORM STATE */
+const INITIAL_FORM_STATE = {
+  name: "",
+  description: "",
+  image: "",
+  images: [],
+  categoryKey: "",
+  basePrice: "",
+  mrp: "",
+  variants: [],
+  addons: [],
+  filters: [],
+  isAvailable: true,
+  isBestseller: false,
+  isRecommended: false,
+  availableFrom: "",
+  availableTo: "",
+  deliveryTime: "20-30 mins",
+};
 
 export default function RestaurantMenu() {
   const { restaurantId } = useParams();
@@ -64,37 +81,74 @@ export default function RestaurantMenu() {
   const [filterCategory, setFilterCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
+  const [form, setForm] = useState(INITIAL_FORM_STATE);
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    image: "",
-    images: [],
-    categoryKey: "",
-    basePrice: "",
-    mrp: "",
-    variants: [],
-    addons: [],
-    filters: [],
-    isAvailable: true,
-    isBestseller: false,
-    isRecommended: false,
-    availableFrom: "",
-    availableTo: "",
-    deliveryTime: "20-30 mins",
-  });
+  const isMountedRef = useRef(true);
+  const abortControllerRef = useRef(null);
+
+  /* ================= CLEANUP ON UNMOUNT ================= */
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      
+      // Abort any pending requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  /* ================= RESET FORM ================= */
+  const resetForm = useCallback(() => {
+    setForm(INITIAL_FORM_STATE);
+    setImagePreview("");
+  }, []);
 
   /* ================= FETCH MENU ================= */
   const fetchMenu = useCallback(async () => {
+    if (!restaurantId) {
+      console.error("No restaurant ID provided");
+      return;
+    }
+
     try {
       setLoading(true);
-      const res = await api.get(`/hotel/menu/admin/${restaurantId}`);
-      setMenu(res.data.data || []);
+
+      // Create new abort controller for this request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
+      const res = await api.get(`/hotel/menu/admin/${restaurantId}`, {
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!isMountedRef.current) return;
+
+      if (res?.data?.data && Array.isArray(res.data.data)) {
+        setMenu(res.data.data);
+      } else {
+        setMenu([]);
+      }
     } catch (e) {
-      console.error(e);
-      alert("Failed to fetch menu");
+      if (e.name === 'AbortError' || e.code === 'ERR_CANCELED') {
+        console.log("Request was cancelled");
+        return;
+      }
+
+      console.error("Fetch menu error:", e);
+      
+      if (isMountedRef.current) {
+        alert("Failed to fetch menu. Please try again.");
+        setMenu([]);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, [restaurantId]);
 
@@ -102,49 +156,26 @@ export default function RestaurantMenu() {
     fetchMenu();
   }, [fetchMenu]);
 
-  /* ================= RESET FORM ================= */
-  const resetForm = () => {
-    setForm({
-      name: "",
-      description: "",
-      image: "",
-      images: [],
-      categoryKey: "",
-      basePrice: "",
-      mrp: "",
-      variants: [],
-      addons: [],
-      filters: [],
-      isAvailable: true,
-      isBestseller: false,
-      isRecommended: false,
-      availableFrom: "",
-      availableTo: "",
-      deliveryTime: "20-30 mins",
-    });
-    setImagePreview("");
-  };
-
   /* ================= VALIDATION ================= */
-  const validateForm = () => {
-    if (!form.name.trim()) {
+  const validateForm = useCallback(() => {
+    if (!form.name?.trim()) {
       alert("⚠️ Item name is required");
       return false;
     }
 
-    if (!form.filters.length) {
+    if (!form.filters || form.filters.length === 0) {
       alert("⚠️ Please select at least one menu filter");
       return false;
     }
 
-    if (!form.basePrice && form.variants.length === 0) {
+    if (!form.basePrice && (!form.variants || form.variants.length === 0)) {
       alert("⚠️ Either base price or at least one variant is required");
       return false;
     }
 
-    if (form.variants.length > 0) {
+    if (form.variants && form.variants.length > 0) {
       for (const v of form.variants) {
-        if (!v.label || !v.price) {
+        if (!v.label?.trim() || !v.price) {
           alert("⚠️ Each variant must have label and price");
           return false;
         }
@@ -153,7 +184,17 @@ export default function RestaurantMenu() {
           alert("⚠️ Variant MRP cannot be less than price");
           return false;
         }
+
+        if (Number(v.price) <= 0) {
+          alert("⚠️ Variant price must be greater than 0");
+          return false;
+        }
       }
+    }
+
+    if (form.basePrice && Number(form.basePrice) <= 0) {
+      alert("⚠️ Base price must be greater than 0");
+      return false;
     }
 
     if (form.mrp && Number(form.mrp) < Number(form.basePrice)) {
@@ -161,47 +202,58 @@ export default function RestaurantMenu() {
       return false;
     }
 
-    if (form.addons.length > 0) {
+    if (form.addons && form.addons.length > 0) {
       for (const addon of form.addons) {
-        if (!addon.name || !addon.price) {
+        if (!addon.name?.trim() || !addon.price) {
           alert("⚠️ Each add-on must have name and price");
+          return false;
+        }
+
+        if (Number(addon.price) <= 0) {
+          alert("⚠️ Add-on price must be greater than 0");
           return false;
         }
       }
     }
 
     return true;
-  };
+  }, [form]);
 
   /* ================= SAVE MENU ITEM ================= */
-  const saveMenuItem = async () => {
+  const saveMenuItem = useCallback(async () => {
     if (!validateForm()) return;
+    if (!restaurantId) {
+      alert("❌ Restaurant ID is missing");
+      return;
+    }
 
     const payload = {
       ...form,
-      basePrice: form.variants.length > 0 ? undefined : Number(form.basePrice),
+      basePrice: form.variants?.length > 0 ? undefined : Number(form.basePrice),
       mrp:
-        form.variants.length > 0
+        form.variants?.length > 0
           ? undefined
           : form.mrp
           ? Number(form.mrp)
           : undefined,
-      variants: form.variants.map((v) => ({
-        label: v.label,
+      variants: form.variants?.map((v) => ({
+        label: v.label?.trim(),
         price: Number(v.price),
         mrp: v.mrp ? Number(v.mrp) : undefined,
-      })),
-      addons: form.addons.map((a) => ({
-        name: a.name,
+      })) || [],
+      addons: form.addons?.map((a) => ({
+        name: a.name?.trim(),
         price: Number(a.price),
-      })),
+      })) || [],
+      filters: form.filters || [],
+      images: form.images || [],
       hotelId: restaurantId,
     };
 
     try {
       setLoading(true);
 
-      if (editItem) {
+      if (editItem?._id) {
         await api.put(`/hotel/menu/${editItem._id}`, payload);
         alert("✅ Menu item updated successfully!");
       } else {
@@ -209,93 +261,235 @@ export default function RestaurantMenu() {
         alert("✅ Menu item added successfully!");
       }
 
+      if (!isMountedRef.current) return;
+
       setShowModal(false);
       setEditItem(null);
       resetForm();
-      fetchMenu();
+      await fetchMenu();
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to save item. Please try again.");
+      console.error("Save menu item error:", err);
+      
+      if (isMountedRef.current) {
+        const errorMessage = err?.response?.data?.message || "Failed to save item. Please try again.";
+        alert(`❌ ${errorMessage}`);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [form, validateForm, restaurantId, editItem, resetForm, fetchMenu]);
 
   /* ================= DELETE MENU ITEM ================= */
-  const deleteMenuItem = async (itemId) => {
+  const deleteMenuItem = useCallback(async (itemId) => {
+    if (!itemId) {
+      console.error("No item ID provided for deletion");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this menu item?")) return;
 
     try {
       setLoading(true);
       await api.delete(`/hotel/menu/${itemId}`);
+      
+      if (!isMountedRef.current) return;
+
       alert("✅ Menu item deleted successfully!");
-      fetchMenu();
+      await fetchMenu();
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to delete item");
+      console.error("Delete menu item error:", err);
+      
+      if (isMountedRef.current) {
+        const errorMessage = err?.response?.data?.message || "Failed to delete item";
+        alert(`❌ ${errorMessage}`);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [fetchMenu]);
+
+  /* ================= TOGGLE AVAILABILITY ================= */
+  const toggleAvailability = useCallback(async (item) => {
+    if (!item?._id) return;
+
+    try {
+      await api.put(`/hotel/menu/${item._id}`, {
+        isAvailable: !item.isAvailable,
+      });
+
+      if (!isMountedRef.current) return;
+
+      await fetchMenu();
+    } catch (err) {
+      console.error("Toggle availability error:", err);
+      
+      if (isMountedRef.current) {
+        alert("❌ Failed to update status");
+      }
+    }
+  }, [fetchMenu]);
 
   /* ================= FILTERED MENU ================= */
-  const filteredMenu = menu.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !filterCategory || item.categoryKey === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredMenu = useCallback(() => {
+    return menu.filter((item) => {
+      const matchesSearch = item?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = !filterCategory || item?.categoryKey === filterCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [menu, searchQuery, filterCategory])();
 
   /* ================= ADD VARIANT ================= */
-  const addVariant = () => {
-    setForm({
-      ...form,
+  const addVariant = useCallback(() => {
+    setForm((prev) => ({
+      ...prev,
       basePrice: "",
       mrp: "",
-      variants: [...form.variants, { label: "", price: "", mrp: "" }],
-    });
-  };
+      variants: [...(prev.variants || []), { label: "", price: "", mrp: "" }],
+    }));
+  }, []);
 
   /* ================= REMOVE VARIANT ================= */
-  const removeVariant = (index) => {
-    setForm({
-      ...form,
-      variants: form.variants.filter((_, i) => i !== index),
-    });
-  };
+  const removeVariant = useCallback((index) => {
+    setForm((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
+  }, []);
 
   /* ================= ADD ADDON ================= */
-  const addAddon = () => {
-    setForm({
-      ...form,
-      addons: [...form.addons, { name: "", price: "" }],
-    });
-  };
+  const addAddon = useCallback(() => {
+    setForm((prev) => ({
+      ...prev,
+      addons: [...(prev.addons || []), { name: "", price: "" }],
+    }));
+  }, []);
 
   /* ================= REMOVE ADDON ================= */
-  const removeAddon = (index) => {
-    setForm({
-      ...form,
-      addons: form.addons.filter((_, i) => i !== index),
+  const removeAddon = useCallback((index) => {
+    setForm((prev) => ({
+      ...prev,
+      addons: prev.addons.filter((_, i) => i !== index),
+    }));
+  }, []);
+
+  /* ================= ADD PRESET ADDON ================= */
+  const addPresetAddon = useCallback((preset) => {
+    setForm((prev) => {
+      const alreadyExists = prev.addons?.some(a => a.name === preset.name);
+      
+      if (alreadyExists) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        addons: [...(prev.addons || []), { name: preset.name, price: String(preset.price) }],
+      };
     });
-  };
+  }, []);
 
   /* ================= ADD IMAGE URL ================= */
-  const addImageUrl = () => {
-    if (!form.image.trim()) return;
-    setForm({
-      ...form,
-      images: [...form.images, form.image],
+  const addImageUrl = useCallback(() => {
+    if (!form.image?.trim()) return;
+
+    setForm((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), prev.image],
       image: "",
-    });
-  };
+    }));
+    setImagePreview("");
+  }, [form.image]);
 
   /* ================= REMOVE IMAGE ================= */
-  const removeImage = (index) => {
+  const removeImage = useCallback((index) => {
+    setForm((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  }, []);
+
+  /* ================= OPEN EDIT MODAL ================= */
+  const openEditModal = useCallback((item) => {
+    if (!item) return;
+
+    setEditItem(item);
     setForm({
-      ...form,
-      images: form.images.filter((_, i) => i !== index),
+      name: item.name || "",
+      description: item.description || "",
+      image: "",
+      images: item.images || [],
+      categoryKey: item.categoryKey || "",
+      basePrice: item.basePrice ? String(item.basePrice) : "",
+      mrp: item.mrp ? String(item.mrp) : "",
+      variants: item.variants
+        ? item.variants.map((v) => ({
+            label: v.label || "",
+            price: v.price ? String(v.price) : "",
+            mrp: v.mrp ? String(v.mrp) : "",
+          }))
+        : [],
+      addons: item.addons
+        ? item.addons.map((a) => ({
+            name: a.name || "",
+            price: a.price ? String(a.price) : "",
+          }))
+        : [],
+      filters: item.filters || [],
+      isAvailable: item.isAvailable ?? true,
+      isBestseller: item.isBestseller ?? false,
+      isRecommended: item.isRecommended ?? false,
+      availableFrom: item.availableFrom || "",
+      availableTo: item.availableTo || "",
+      deliveryTime: item.deliveryTime || "20-30 mins",
     });
-  };
+    setShowModal(true);
+  }, []);
+
+  /* ================= CLOSE MODAL ================= */
+  const closeModal = useCallback(() => {
+    if (loading) return;
+    
+    setShowModal(false);
+    setEditItem(null);
+    resetForm();
+  }, [loading, resetForm]);
+
+  /* ================= HANDLE VARIANT CHANGE ================= */
+  const handleVariantChange = useCallback((index, field, value) => {
+    setForm((prev) => {
+      const variants = [...prev.variants];
+      variants[index] = { ...variants[index], [field]: value };
+      return { ...prev, variants };
+    });
+  }, []);
+
+  /* ================= HANDLE ADDON CHANGE ================= */
+  const handleAddonChange = useCallback((index, field, value) => {
+    setForm((prev) => {
+      const addons = [...prev.addons];
+      addons[index] = { ...addons[index], [field]: value };
+      return { ...prev, addons };
+    });
+  }, []);
+
+  /* ================= TOGGLE FILTER ================= */
+  const toggleFilter = useCallback((filterValue) => {
+    setForm((prev) => {
+      const filters = prev.filters || [];
+      const isSelected = filters.includes(filterValue);
+      
+      return {
+        ...prev,
+        filters: isSelected
+          ? filters.filter((x) => x !== filterValue)
+          : [...filters, filterValue],
+      };
+    });
+  }, []);
 
   return (
     <AdminLayout>
@@ -307,11 +501,15 @@ export default function RestaurantMenu() {
             <p className="page-subtitle">Manage your menu items, variants, and add-ons</p>
           </div>
 
-          <button className="btn-primary" onClick={() => {
-            resetForm();
-            setEditItem(null);
-            setShowModal(true);
-          }}>
+          <button 
+            className="btn-primary" 
+            onClick={() => {
+              resetForm();
+              setEditItem(null);
+              setShowModal(true);
+            }}
+            disabled={loading}
+          >
             <span>+</span> Add Menu Item
           </button>
         </div>
@@ -348,7 +546,9 @@ export default function RestaurantMenu() {
             </div>
             <div className="stat-chip">
               <span className="stat-label">Available</span>
-              <span className="stat-value success">{menu.filter(i => i.isAvailable).length}</span>
+              <span className="stat-value success">
+                {menu.filter(i => i?.isAvailable).length}
+              </span>
             </div>
           </div>
         </div>
@@ -396,7 +596,10 @@ export default function RestaurantMenu() {
                         <div>
                           <div className="item-name">{item.name}</div>
                           {item.description && (
-                            <div className="item-desc">{item.description.substring(0, 50)}...</div>
+                            <div className="item-desc">
+                              {item.description.substring(0, 50)}
+                              {item.description.length > 50 ? "..." : ""}
+                            </div>
                           )}
                           <div className="item-tags">
                             {item.isBestseller && <span className="tag tag-bestseller">⭐ Bestseller</span>}
@@ -408,7 +611,7 @@ export default function RestaurantMenu() {
 
                     <td>
                       <span className="category-badge">
-                        {CATEGORY_OPTIONS.find(c => c.slug === item.categoryKey)?.name || item.categoryKey}
+                        {CATEGORY_OPTIONS.find(c => c.slug === item.categoryKey)?.name || item.categoryKey || "N/A"}
                       </span>
                     </td>
 
@@ -426,13 +629,15 @@ export default function RestaurantMenu() {
                     </td>
 
                     <td>
-                      {item.variants?.length ? (
+                      {item.variants?.length > 0 ? (
                         <div className="price-info">
-                          <div className="price-main">From ₹{Math.min(...item.variants.map(v => v.price))}</div>
+                          <div className="price-main">
+                            From ₹{Math.min(...item.variants.map(v => v.price || 0))}
+                          </div>
                         </div>
                       ) : (
                         <div className="price-info">
-                          <div className="price-main">₹{item.basePrice}</div>
+                          <div className="price-main">₹{item.basePrice || 0}</div>
                           {item.mrp && item.mrp > item.basePrice && (
                             <div className="price-strike">₹{item.mrp}</div>
                           )}
@@ -472,57 +677,18 @@ export default function RestaurantMenu() {
                       <div className="action-buttons">
                         <button
                           className="btn-icon btn-edit"
-                          onClick={() => {
-                            setEditItem(item);
-                            setForm({
-                              name: item.name || "",
-                              description: item.description || "",
-                              image: "",
-                              images: item.images || [],
-                              categoryKey: item.categoryKey || "",
-                              basePrice: item.basePrice || "",
-                              mrp: item.mrp || "",
-                              variants: item.variants
-                                ? item.variants.map((v) => ({
-                                    label: v.label,
-                                    price: String(v.price),
-                                    mrp: v.mrp ? String(v.mrp) : "",
-                                  }))
-                                : [],
-                              addons: item.addons
-                                ? item.addons.map((a) => ({
-                                    name: a.name,
-                                    price: String(a.price),
-                                  }))
-                                : [],
-                              filters: item.filters || [],
-                              isAvailable: item.isAvailable ?? true,
-                              isBestseller: item.isBestseller ?? false,
-                              isRecommended: item.isRecommended ?? false,
-                              availableFrom: item.availableFrom || "",
-                              availableTo: item.availableTo || "",
-                              deliveryTime: item.deliveryTime || "20-30 mins",
-                            });
-                            setShowModal(true);
-                          }}
+                          onClick={() => openEditModal(item)}
                           title="Edit"
+                          disabled={loading}
                         >
                           ✏️
                         </button>
 
                         <button
                           className={`btn-icon ${item.isAvailable ? "btn-disable" : "btn-enable"}`}
-                          onClick={async () => {
-                            try {
-                              await api.put(`/hotel/menu/${item._id}`, {
-                                isAvailable: !item.isAvailable,
-                              });
-                              fetchMenu();
-                            } catch {
-                              alert("Failed to update status");
-                            }
-                          }}
+                          onClick={() => toggleAvailability(item)}
                           title={item.isAvailable ? "Disable" : "Enable"}
+                          disabled={loading}
                         >
                           {item.isAvailable ? "🚫" : "✅"}
                         </button>
@@ -531,6 +697,7 @@ export default function RestaurantMenu() {
                           className="btn-icon btn-delete"
                           onClick={() => deleteMenuItem(item._id)}
                           title="Delete"
+                          disabled={loading}
                         >
                           🗑️
                         </button>
@@ -545,13 +712,7 @@ export default function RestaurantMenu() {
 
         {/* MODAL */}
         {showModal && (
-          <div className="modal-overlay" onClick={() => {
-            if (!loading) {
-              setShowModal(false);
-              setEditItem(null);
-              resetForm();
-            }
-          }}>
+          <div className="modal-overlay" onClick={closeModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <div>
@@ -560,11 +721,7 @@ export default function RestaurantMenu() {
                 </div>
                 <button
                   className="modal-close"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditItem(null);
-                    resetForm();
-                  }}
+                  onClick={closeModal}
                   disabled={loading}
                 >
                   ✕
@@ -598,7 +755,7 @@ export default function RestaurantMenu() {
 
                   <div className="form-row">
                     <div className="form-group">
-<label>Category (Optional)</label>
+                      <label>Category (Optional)</label>
                       <select
                         value={form.categoryKey}
                         onChange={(e) => setForm({ ...form, categoryKey: e.target.value })}
@@ -651,7 +808,7 @@ export default function RestaurantMenu() {
                     )}
                   </div>
 
-                  {form.images.length > 0 && (
+                  {form.images?.length > 0 && (
                     <div className="image-list">
                       {form.images.map((img, index) => (
                         <div key={index} className="image-item">
@@ -673,7 +830,7 @@ export default function RestaurantMenu() {
                 <div className="form-section">
                   <h4 className="section-title">Pricing & Variants</h4>
 
-                  {form.variants.length === 0 && (
+                  {(!form.variants || form.variants.length === 0) && (
                     <div className="form-row">
                       <div className="form-group">
                         <label>Base Price *</label>
@@ -682,6 +839,8 @@ export default function RestaurantMenu() {
                           placeholder="₹ 0"
                           value={form.basePrice}
                           onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
+                          min="0"
+                          step="0.01"
                         />
                       </div>
 
@@ -692,6 +851,8 @@ export default function RestaurantMenu() {
                           placeholder="₹ 0"
                           value={form.mrp}
                           onChange={(e) => setForm({ ...form, mrp: e.target.value })}
+                          min="0"
+                          step="0.01"
                         />
                       </div>
                     </div>
@@ -710,37 +871,29 @@ export default function RestaurantMenu() {
                       </button>
                     </div>
 
-                    {form.variants.map((v, index) => (
+                    {form.variants?.map((v, index) => (
                       <div key={index} className="variant-item">
                         <input
                           type="text"
                           placeholder="Label (e.g., Half)"
                           value={v.label}
-                          onChange={(e) => {
-                            const variants = [...form.variants];
-                            variants[index].label = e.target.value;
-                            setForm({ ...form, variants });
-                          }}
+                          onChange={(e) => handleVariantChange(index, 'label', e.target.value)}
                         />
                         <input
                           type="number"
                           placeholder="Price"
                           value={v.price}
-                          onChange={(e) => {
-                            const variants = [...form.variants];
-                            variants[index].price = e.target.value;
-                            setForm({ ...form, variants });
-                          }}
+                          onChange={(e) => handleVariantChange(index, 'price', e.target.value)}
+                          min="0"
+                          step="0.01"
                         />
                         <input
                           type="number"
                           placeholder="MRP (optional)"
                           value={v.mrp || ""}
-                          onChange={(e) => {
-                            const variants = [...form.variants];
-                            variants[index].mrp = e.target.value;
-                            setForm({ ...form, variants });
-                          }}
+                          onChange={(e) => handleVariantChange(index, 'mrp', e.target.value)}
+                          min="0"
+                          step="0.01"
                         />
                         <button
                           type="button"
@@ -774,14 +927,7 @@ export default function RestaurantMenu() {
                         key={i}
                         type="button"
                         className="preset-btn"
-                        onClick={() => {
-                          if (!form.addons.find(a => a.name === preset.name)) {
-                            setForm({
-                              ...form,
-                              addons: [...form.addons, { ...preset, price: String(preset.price) }],
-                            });
-                          }
-                        }}
+                        onClick={() => addPresetAddon(preset)}
                       >
                         {preset.name} (₹{preset.price})
                       </button>
@@ -789,27 +935,21 @@ export default function RestaurantMenu() {
                   </div>
 
                   {/* CUSTOM ADD-ONS */}
-                  {form.addons.map((addon, index) => (
+                  {form.addons?.map((addon, index) => (
                     <div key={index} className="addon-item">
                       <input
                         type="text"
                         placeholder="Add-on name"
                         value={addon.name}
-                        onChange={(e) => {
-                          const addons = [...form.addons];
-                          addons[index].name = e.target.value;
-                          setForm({ ...form, addons });
-                        }}
+                        onChange={(e) => handleAddonChange(index, 'name', e.target.value)}
                       />
                       <input
                         type="number"
                         placeholder="Price"
                         value={addon.price}
-                        onChange={(e) => {
-                          const addons = [...form.addons];
-                          addons[index].price = e.target.value;
-                          setForm({ ...form, addons });
-                        }}
+                        onChange={(e) => handleAddonChange(index, 'price', e.target.value)}
+                        min="0"
+                        step="0.01"
                       />
                       <button
                         type="button"
@@ -830,17 +970,8 @@ export default function RestaurantMenu() {
                       <label key={f.value} className="filter-checkbox">
                         <input
                           type="checkbox"
-                          checked={form.filters.includes(f.value)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setForm({ ...form, filters: [...form.filters, f.value] });
-                            } else {
-                              setForm({
-                                ...form,
-                                filters: form.filters.filter((x) => x !== f.value),
-                              });
-                            }
-                          }}
+                          checked={form.filters?.includes(f.value) || false}
+                          onChange={() => toggleFilter(f.value)}
                         />
                         <span>{f.label}</span>
                       </label>
@@ -916,11 +1047,7 @@ export default function RestaurantMenu() {
               <div className="modal-footer">
                 <button
                   className="btn-secondary"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditItem(null);
-                    resetForm();
-                  }}
+                  onClick={closeModal}
                   disabled={loading}
                 >
                   Cancel
