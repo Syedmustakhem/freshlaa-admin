@@ -93,26 +93,18 @@ const deleteProduct = async (productId) => {
 
   /* ================= EDIT PRODUCT ================= */
  const openEditProduct = async (product) => {
+  await fetchCategories(product.sectionId || null); // ALWAYS LOAD
+
   setEditProduct({
     ...JSON.parse(JSON.stringify(product)),
     variants: (product.variants || []).map(v => ({
       ...v,
       unit: v.unit || "kg",
     })),
-  });
-
-if (product.sectionId) {
-await fetchCategories(product.sectionId || null);
-
-  setEditProduct(prev => ({
-    ...prev,
     category: product.category,
     subCategory: product.category,
-  }));
-}
-
+  });
 };
-
   
 const saveEditProduct = async () => {
 if (!editProduct.category) {
@@ -250,16 +242,14 @@ sectionId: newProduct.sectionId || null,
   }
 };
 
-
 const fetchCategories = async (sectionId = null) => {
   try {
     let url = "/admin/categories";
 
     if (sectionId) {
       url += `?sectionId=${sectionId}`;
-    } else {
-      url += `?displayType=top`;
     }
+    // ❌ REMOVE displayType=top condition completely
 
     const res = await api.get(url, {
       headers: {
@@ -272,6 +262,7 @@ const fetchCategories = async (sectionId = null) => {
     console.error("Failed to load categories", err);
   }
 };
+
 
 const handleEditSectionChange = async (sectionId) => {
   setEditProduct(prev => ({
@@ -341,7 +332,7 @@ const saveVariants = async () => {
       <button
         className="btn btn-dark"
        onClick={() => {
-fetchCategories(null); // load top categories initially
+fetchCategories(); // load top categories initially
   setSubCategoryImage(""); // ✅ ADD THIS
   setNewProduct({
     name: "",
@@ -508,10 +499,9 @@ fetchCategories(null); // load top categories initially
 </select>
 
 
-               <label className="form-label">Category</label>
-<select
+<label className="form-label">Category (Required)</label><select
   className="form-control"
-  disabled={!categories.length}
+  disabled={false}
   value={newProduct.category}
   onChange={(e) => {
     const selected = categories.find(c => c.slug === e.target.value);
@@ -709,7 +699,7 @@ setNewProduct({
     sectionId: "",
     subCategory: "",
     category: "",
-    images: [""],
+    images: [],
     variants: [{ ...emptyVariant }],
   });
 }}
@@ -781,7 +771,7 @@ setNewProduct({
 <label className="form-label">Category</label>
 <select
   className="form-control"
-  disabled={!categories.length}
+disabled={false}
   value={editProduct.category}
   onChange={(e) => {
     const selected = categories.find(c => c.slug === e.target.value);
