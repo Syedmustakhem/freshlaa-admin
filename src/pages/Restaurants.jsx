@@ -15,6 +15,9 @@ const CATEGORY_OPTIONS = [
   { name: "Non-Veg", slug: "non-veg" },
   { name: "Fast Food", slug: "fast-food" },
   { name: "Pani Puri & More", slug: "pani-puri-more" },
+  { name: "Dairy", slug: "dairy"},
+  { name: "Fresh vegetables", slug: "fresh-vegetables"},
+  { name: "Fresh Meat", slug: "fresh-meat"},
 ];
 
 const DEFAULT_FORM = {
