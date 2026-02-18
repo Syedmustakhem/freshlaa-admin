@@ -59,6 +59,9 @@ export default function Categories() {
         title: editing.title,
         slug: editing.slug,
         isActive: editing.isActive,
+        displayType: editing.displayType,
+        order: editing.order,
+        images: editing.images,
       });
 
       setEditing(null);
@@ -96,7 +99,9 @@ export default function Categories() {
                 <th>#</th>
                 <th>Title</th>
                 <th>Slug</th>
-                <th>Section</th>
+                <th>Section</th>      {/* ✅ matches tbody: sectionId?.title */}
+                <th>Type</th>         {/* ✅ matches tbody: displayType */}
+                <th>Order</th>        {/* ✅ matches tbody: c.order */}
                 <th>Status</th>
                 <th style={{ width: 180 }}>Actions</th>
               </tr>
@@ -113,16 +118,24 @@ export default function Categories() {
 
                   <td className="text-muted">{c.slug}</td>
 
+                  {/* Section */}
                   <td>
                     {c.sectionId?.title ? (
-                      <span className="badge bg-info">
-                        {c.sectionId.title}
-                      </span>
+                      <span className="badge bg-info">{c.sectionId.title}</span>
                     ) : (
                       <span className="text-muted">—</span>
                     )}
                   </td>
 
+                  {/* Display Type */}
+                  <td>
+                    <span className="badge bg-secondary">{c.displayType}</span>
+                  </td>
+
+                  {/* Order */}
+                  <td>{c.order || 0}</td>
+
+                  {/* Status */}
                   <td>
                     <button
                       className={`btn btn-sm ${
@@ -134,6 +147,7 @@ export default function Categories() {
                     </button>
                   </td>
 
+                  {/* Actions */}
                   <td>
                     <button
                       className="btn btn-sm btn-outline-dark me-2"
@@ -154,7 +168,7 @@ export default function Categories() {
 
               {categories.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="text-center py-4 text-muted">
+                  <td colSpan="8" className="text-center py-4 text-muted"> {/* ✅ was 6, now 8 */}
                     No categories found
                   </td>
                 </tr>
@@ -196,6 +210,43 @@ export default function Categories() {
                   value={editing.slug}
                   onChange={(e) =>
                     setEditing({ ...editing, slug: e.target.value })
+                  }
+                />
+
+                <label className="form-label">Display Type</label>
+                <select
+                  className="form-control mb-2"
+                  value={editing.displayType || "section"}
+                  onChange={(e) =>
+                    setEditing({ ...editing, displayType: e.target.value })
+                  }
+                >
+                  <option value="section">Section</option>
+                  <option value="top">Top</option>
+                  <option value="featured">Featured</option>
+                  <option value="festival">Festival</option>
+                  <option value="trending">Trending</option>
+                </select>
+
+                <label className="form-label">Order</label>
+                <input
+                  type="number"
+                  className="form-control mb-2"
+                  value={editing.order || 0}
+                  onChange={(e) =>
+                    setEditing({ ...editing, order: Number(e.target.value) })
+                  }
+                />
+
+                <label className="form-label">Images (comma separated URLs)</label>
+                <input
+                  className="form-control mb-2"
+                  value={(editing.images || []).join(",")}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      images: e.target.value.split(",").map((url) => url.trim()),
+                    })
                   }
                 />
 
