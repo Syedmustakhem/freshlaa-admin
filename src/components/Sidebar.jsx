@@ -9,7 +9,7 @@ import {
   Image,
   Home,
 } from "lucide-react";
-
+import { Ticket } from "lucide-react";
 export default function Sidebar() {
   return (
     <aside className="admin-sidebar">
@@ -23,6 +23,11 @@ export default function Sidebar() {
         <NavItem to="/restaurants" icon={<Store size={18} />} label="Restaurants" />
         <NavItem to="/products" icon={<Package size={18} />} label="Products" />
         <NavItem to="/categories" icon={<Layers size={18} />} label="Categories" />
+        <NavItem 
+  to="/coupons" 
+  icon={<Ticket size={18} />} 
+  label="Coupons" 
+/>
         <NavItem to="/orders" icon={<ShoppingCart size={18} />} label="Orders" />
         <NavItem to="/users" icon={<Users size={18} />} label="Users" />
         <NavItem to="/banners" icon={<Image size={18} />} label="Banners" />

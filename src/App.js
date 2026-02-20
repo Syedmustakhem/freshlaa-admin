@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomeLayout from "./pages/HomeLayout";
 import AddCategory from "./pages/AddCategory";
-
+import Coupons from "./pages/Coupons";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Restaurants from "./pages/Restaurants";
@@ -37,7 +37,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
+<Route
+  path="/coupons"
+  element={
+    <ProtectedRoute>
+      <Coupons />
+    </ProtectedRoute>
+  }
+/>
           {/* ADMIN PROFILE */}
           <Route
             path="/admin/profile"
