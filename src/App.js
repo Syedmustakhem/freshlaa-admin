@@ -18,6 +18,7 @@ import UserAddresses from "./pages/UserAddresses";
 import UserCart from "./pages/UserCart";
 import RestaurantOrders from "./pages/RestaurantOrders"
 import RestaurantDashboard from "./pages/RestaurantDashboard"
+import OrderDetails from "./pages/OrderDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastProvider } from "./context/ToastContext";
 export default function App() {
@@ -54,7 +55,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
+<Route
+  path="/admin/order/:id"
+  element={
+    <ProtectedRoute>
+      <OrderDetails />
+    </ProtectedRoute>
+  }
+/>
           <Route
   path="/home-layout"
   element={

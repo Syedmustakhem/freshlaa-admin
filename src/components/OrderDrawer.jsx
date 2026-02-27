@@ -1,68 +1,215 @@
-import { motion } from "framer-motion";
-import OrderTimeline from "./OrderTimeline";
+import React from "react";
 
 export default function OrderDrawer({ order, onClose }) {
-  return (
-    <>
-      {/* Backdrop */}
-      <div className="drawer-backdrop" onClick={onClose} />
 
-      {/* Drawer */}
-      <motion.div
-        className="order-drawer"
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-      >
-        <div className="drawer-header">
-          <h5>Order Details</h5>
-          <button className="btn-close" onClick={onClose} />
-        </div>
+if(!order) return null;
 
-        <div className="drawer-body">
-          {/* Order Info */}
-          <div className="drawer-section">
-            <p>
-              <strong>Order ID:</strong>{" "}
-              <span className="text-muted">
-                #{order._id.slice(-6)}
-              </span>
-            </p>
-            <p>
-              <strong>Total:</strong>{" "}
-              <span className="order-total">₹{order.total}</span>
-            </p>
-          </div>
+return (
 
-          {/* Timeline */}
-          <div className="drawer-section">
-            <OrderTimeline status={order.status} />
-          </div>
+<div style={{
+position:"fixed",
+right:0,
+top:0,
+width:400,
+height:"100%",
+background:"#fff",
+boxShadow:"-2px 0 10px rgba(0,0,0,0.2)",
+padding:20,
+overflow:"auto",
+zIndex:1000
+}}>
 
-          <hr />
+<h4>Order Details</h4>
 
-          {/* Items */}
-          <div className="drawer-section">
-            <h6 className="section-title">Items</h6>
+<hr/>
 
-            {order.items.map((item, i) => (
-              <div key={i} className="order-item">
-                <div>
-                  <strong>{item.name}</strong>
-                  <div className="item-qty">
-                    Qty: {item.qty}
-                  </div>
-                </div>
+{/* USER */}
 
-                <div className="item-price">
-                  ₹{item.price}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-    </>
-  );
+<h6>User</h6>
+
+<p>
+
+{order.user?.name}
+
+<br/>
+
+{order.user?.phone}
+
+</p>
+
+
+{/* ADDRESS */}
+
+<h6>Address</h6>
+
+<p>
+
+{order.address?.house}
+
+<br/>
+
+{order.address?.area}
+
+<br/>
+
+{order.address?.city}
+
+</p>
+
+
+<hr/>
+
+
+{/* PRODUCTS */}
+
+<h6>Products</h6>
+
+{order.items?.map((item,i)=>{
+
+const itemTotal = item.price * item.qty;
+
+return(
+
+<div key={i}
+style={{
+borderBottom:"1px solid #eee",
+paddingBottom:10,
+marginBottom:10
+}}>
+
+<div style={{
+display:"flex",
+gap:10
+}}>
+
+<img
+src={item.image}
+style={{
+width:60,
+height:60,
+objectFit:"cover",
+borderRadius:8
+}}
+/>
+
+<div>
+
+<strong>{item.name}</strong>
+
+<br/>
+
+Qty: {item.qty}
+
+<br/>
+
+Price: ₹{item.price}
+
+<br/>
+
+Total: ₹{itemTotal}
+
+
+{/* VARIANT */}
+
+{item.variant?.label && (
+
+<>
+<br/>
+Variant: {item.variant.label}
+</>
+
+)}
+
+
+{/* ADDONS */}
+
+{item.selectedAddons?.length>0 && (
+
+<>
+<br/>
+Addons:
+
+{item.selectedAddons.map((a,i)=>(
+<div key={i}>
+{a.name} ₹{a.price}
+</div>
+))}
+
+</>
+
+)}
+
+
+{/* CUSTOM */}
+
+{item.customizations?.specialInstructions &&(
+
+<>
+<br/>
+Note:
+{item.customizations.specialInstructions}
+</>
+
+)}
+
+
+</div>
+
+</div>
+
+</div>
+
+);
+
+})}
+
+
+<hr/>
+
+
+{/* BILL */}
+
+<h6>Bill</h6>
+
+<p>
+
+Total Items: {order.items?.length}
+
+<br/>
+
+Grand Total: ₹{order.total}
+
+<br/>
+
+Payment: {order.paymentMethod}
+
+<br/>
+
+Status: {order.status}
+
+</p>
+
+
+<hr/>
+
+
+<button
+onClick={onClose}
+style={{
+width:"100%",
+padding:10,
+background:"#000",
+color:"#fff",
+border:"none"
+}}
+>
+
+Close
+
+</button>
+
+</div>
+
+);
+
 }

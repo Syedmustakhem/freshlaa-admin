@@ -16,6 +16,7 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  // ✅ FETCH ORDERS
   const fetchOrders = async () => {
     try {
       const res = await api.get("/admin/orders");
@@ -25,7 +26,7 @@ export default function Orders() {
     }
   };
 
-  // 🔊 SOUND (browser-safe)
+  // 🔊 SOUND
   const playSound = () => {
     if (!window.__soundEnabled) return;
     const audio = new Audio("/notification.mp3");
@@ -40,10 +41,11 @@ export default function Orders() {
       window.__soundEnabled = true;
       document.removeEventListener("click", enableSound);
     };
+
     document.addEventListener("click", enableSound);
   }, []);
 
-  // 🔥 SOCKET LISTENERS
+  // 🔥 SOCKET EVENTS
   useEffect(() => {
     socket.on("connect", () => {
       console.log("🟢 Admin socket connected");
@@ -97,6 +99,7 @@ export default function Orders() {
 
   return (
     <AdminLayout>
+
       <h3 className="page-heading">Orders</h3>
 
       <motion.div
@@ -105,11 +108,15 @@ export default function Orders() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
       >
+
         <div className="table-responsive">
+
           <table className="table table-modern">
+
             <thead>
               <tr>
                 <th>Order</th>
+                <th>Products</th>
                 <th>User</th>
                 <th>Total</th>
                 <th>Status</th>
@@ -118,17 +125,97 @@ export default function Orders() {
             </thead>
 
             <tbody>
+
               {orders.map((o) => (
+
                 <motion.tr
                   key={o._id}
                   whileHover={{ backgroundColor: "#f9fafb" }}
                   onClick={() => setSelectedOrder(o)}
                   style={{ cursor: "pointer" }}
                 >
-                  <td>#{o._id.slice(-6)}</td>
-                  <td>{o.user?.phone || "-"}</td>
-                  <td>₹{o.total}</td>
-                  <td onClick={(e) => e.stopPropagation()}>
+
+                  {/* ORDER ID */}
+                  <td>
+                    #{o._id.slice(-6)}
+                  </td>
+
+
+                  {/* PRODUCT IMAGE + NAME */}
+                  <td>
+
+                    {o.items && o.items.length > 0 ? (
+
+                      <div style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 6
+                      }}>
+
+                        {o.items.slice(0, 2).map((item, i) => (
+
+                          <div
+                            key={i}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8
+                            }}
+                          >
+
+                            <img
+                              src={item.image}
+                              alt=""
+                              style={{
+                                width: 40,
+                                height: 40,
+                                objectFit: "cover",
+                                borderRadius: 6,
+                                border: "1px solid #eee"
+                              }}
+                            />
+
+                            <span>
+                              {item.name}
+                            </span>
+
+                          </div>
+
+                        ))}
+
+
+                        {o.items.length > 2 && (
+                          <small style={{ color: "#777" }}>
+                            +{o.items.length - 2} more items
+                          </small>
+                        )}
+
+                      </div>
+
+                    ) : "-"
+
+                    }
+
+                  </td>
+
+
+                  {/* USER */}
+                  <td>
+                    {o.user?.phone || "-"}
+                  </td>
+
+
+                  {/* TOTAL */}
+                  <td>
+                    ₹{o.total}
+                  </td>
+
+
+                  {/* STATUS */}
+                  <td
+                    onClick={(e) => e.stopPropagation()}
+                  >
+
                     <select
                       className={`status-select ${o.status.toLowerCase()}`}
                       value={o.status}
@@ -139,28 +226,46 @@ export default function Orders() {
                         )
                       }
                     >
+
                       <option>Placed</option>
                       <option>Packed</option>
                       <option>Out for Delivery</option>
                       <option>Delivered</option>
+
                     </select>
+
                   </td>
+
+
+                  {/* DATE */}
                   <td>
                     {new Date(o.createdAt).toLocaleString()}
                   </td>
+
+
                 </motion.tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
+
       </motion.div>
 
+
+      {/* ORDER DRAWER */}
       {selectedOrder && (
+
         <OrderDrawer
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
         />
+
       )}
+
     </AdminLayout>
   );
 }
