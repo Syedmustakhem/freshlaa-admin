@@ -20,6 +20,7 @@ import RestaurantOrders from "./pages/RestaurantOrders"
 import RestaurantDashboard from "./pages/RestaurantDashboard"
 import OrderDetails from "./pages/OrderDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BrandManager from "./pages/BrandManager";
 import { ToastProvider } from "./context/ToastContext";
 export default function App() {
   return (
@@ -43,6 +44,15 @@ export default function App() {
   element={
     <ProtectedRoute>
       <Coupons />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/brand-manager"
+  element={
+    <ProtectedRoute>
+      <BrandManager />
     </ProtectedRoute>
   }
 />
