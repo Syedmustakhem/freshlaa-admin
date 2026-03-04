@@ -26,7 +26,7 @@ export default function Login() {
       setSuccess(true);
 
       setTimeout(() => {
-        navigate("/products");
+        navigate("/dashboard");
       }, 900);
     } catch (err) {
       setError(err.response?.data?.message || "Invalid credentials");

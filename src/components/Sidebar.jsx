@@ -1,16 +1,11 @@
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Store,
-  Package,
-  Layers,
-  ShoppingCart,
-  Users,
-  Image,
-  Home,
-  Sparkles,
+  LayoutDashboard, Store, Package, Layers,
+  ShoppingCart, Users, Image, Home, Sparkles,
+  Filter,  // ← add this
 } from "lucide-react";
 import { Ticket } from "lucide-react";
+import { Search } from "lucide-react"; // already have Search? use it
 
 export default function Sidebar() {
   return (
@@ -30,7 +25,9 @@ export default function Sidebar() {
         <NavItem to="/users"         icon={<Users size={18} />}           label="Users" />
         <NavItem to="/banners"       icon={<Image size={18} />}           label="Banners" />
         <NavItem to="/home-layout"   icon={<Home size={18} />}            label="Home Layout" />
-        <NavItem to="/brand-manager" icon={<Sparkles size={18} />}       label="Brand Manager" />  {/* ✅ NEW */}
+        <NavItem to="/brand-manager" icon={<Sparkles size={18} />}       label="Brand Manager" /> 
+        <NavItem to="/quick-filters" icon={<Filter size={18} />} label="Quick Filters" /> 
+        <NavItem to="/header-editor" icon={<Search size={18} />} label="Header" />{/* ✅ NEW */}
       </nav>
     </aside>
   );
