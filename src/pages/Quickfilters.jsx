@@ -424,22 +424,34 @@ export default function Quickfilters() {
   };
 
   // ── Save ──
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const res = await fetch(`${API}/admin/home-section/${config.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify(config),
+ const handleSave = async () => {
+  setSaving(true);
+  try {
+    // Deep clone and clean empty query fields before saving
+    const cleanConfig = deep(config);
+    cleanConfig.data?.filters?.forEach(filter => {
+      filter.layout?.forEach(block => {
+        if (block.type === "PRODUCTS" && block.data?.query) {
+          block.data.query = Object.fromEntries(
+            Object.entries(block.data.query).filter(([_, v]) => v !== "" && v !== null)
+          );
+        }
       });
-      const data = await res.json();
-      if (data.success !== false) showToast("✅ Quick Filters saved! App reflects changes instantly.");
-      else showToast("❌ " + (data.message || "Save failed"), "error");
-    } catch {
-      showToast("❌ Network error. Please try again.", "error");
-    }
-    setSaving(false);
-  };
+    });
+
+    const res = await fetch(`${API}/admin/home-section/${config.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+      body: JSON.stringify(cleanConfig),
+    });
+    const data = await res.json();
+    if (data.success !== false) showToast("✅ Quick Filters saved! App reflects changes instantly.");
+    else showToast("❌ " + (data.message || "Save failed"), "error");
+  } catch {
+    showToast("❌ Network error. Please try again.", "error");
+  }
+  setSaving(false);
+};
 
   return (
     <AdminLayout>

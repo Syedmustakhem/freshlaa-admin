@@ -19,6 +19,7 @@ const emptyVariant = {
 const emptyProduct = {
   name: "", description: "", sectionId: "",
   subCategory: "", category: "", images: [""],
+  quickFilter: "",  // ← ADD THIS
   variants: [{ ...emptyVariant }],
 };
 
@@ -209,7 +210,7 @@ export default function Products() {
         category: editProduct.category,
         images: editProduct.images,
         variants: editProduct.variants,
-      }, { headers: authHeader() });
+quickFilter: editProduct.quickFilter || null,      }, { headers: authHeader() });
       setEditProduct(null);
       fetchProducts();
       showToast("Product updated");
@@ -231,6 +232,7 @@ export default function Products() {
         sectionId: newProduct.sectionId || null,
         category: newProduct.category,
         subCategory: newProduct.category,
+          quickFilter: newProduct.quickFilter || null, 
         images: newProduct.images.filter(Boolean),
         variants: newProduct.variants.map(v => ({
           label: v.label, unit: v.unit || "kg",
@@ -529,17 +531,31 @@ export default function Products() {
           size={860}
         >
           <Section icon="🧾" title="Basic Information">
-            <div style={{ marginBottom: 12 }}>
-              <Label>Product Name *</Label>
-              <Input placeholder="e.g. Fresh Tomatoes" value={newProduct.name}
-                onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea rows={2} placeholder="Short product description…" value={newProduct.description}
-                onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} />
-            </div>
-          </Section>
+  <div style={{ marginBottom: 12 }}>
+    <Label>Product Name *</Label>
+    <Input placeholder="e.g. Fresh Tomatoes" value={newProduct.name}
+      onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} />
+  </div>
+  <div style={{ marginBottom: 12 }}>
+    <Label>Description</Label>
+    <Textarea rows={2} placeholder="Short product description…" value={newProduct.description}
+      onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} />
+  </div>
+
+  {/* ← ADD THIS */}
+  <div>
+    <Label>Quick Filter Tag</Label>
+    <Select value={newProduct.quickFilter}
+      onChange={e => setNewProduct(p => ({ ...p, quickFilter: e.target.value }))}>
+      <option value="">None</option>
+      <option value="festival">🎉 Festival</option>
+      <option value="deals">🏷️ Deals</option>
+      <option value="snacks">🍿 Snacks</option>
+      <option value="dry-fruits-pan">🥜 Dry Fruits & Pan</option>
+      <option value="vegetables">🥦 Vegetables</option>
+    </Select>
+  </div>
+</Section>
 
           <Section icon="📂" title="Category Selection">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -613,17 +629,31 @@ export default function Products() {
           size={700}
         >
           <Section icon="🧾" title="Basic Information">
-            <div style={{ marginBottom: 12 }}>
-              <Label>Product Name</Label>
-              <Input value={editProduct.name}
-                onChange={e => setEditProduct(p => ({ ...p, name: e.target.value }))} />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea rows={2} value={editProduct.description}
-                onChange={e => setEditProduct(p => ({ ...p, description: e.target.value }))} />
-            </div>
-          </Section>
+  <div style={{ marginBottom: 12 }}>
+    <Label>Product Name</Label>
+    <Input value={editProduct.name}
+      onChange={e => setEditProduct(p => ({ ...p, name: e.target.value }))} />
+  </div>
+  <div style={{ marginBottom: 12 }}>
+    <Label>Description</Label>
+    <Textarea rows={2} value={editProduct.description}
+      onChange={e => setEditProduct(p => ({ ...p, description: e.target.value }))} />
+  </div>
+
+  {/* ← ADD THIS */}
+  <div>
+    <Label>Quick Filter Tag</Label>
+    <Select value={editProduct.quickFilter || ""}
+      onChange={e => setEditProduct(p => ({ ...p, quickFilter: e.target.value }))}>
+      <option value="">None</option>
+      <option value="festival">🎉 Festival</option>
+      <option value="deals">🏷️ Deals</option>
+      <option value="snacks">🍿 Snacks</option>
+      <option value="dry-fruits-pan">🥜 Dry Fruits & Pan</option>
+      <option value="vegetables">🥦 Vegetables</option>
+    </Select>
+  </div>
+</Section>
 
           <Section icon="📂" title="Category">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>

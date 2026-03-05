@@ -17,6 +17,7 @@ const SCREENS = [
   "CategoriesScreen",
   "ProductDetails",
   "DealsScreen",
+  "LandingScreen"
 ];
 
 const fieldLabel = {
