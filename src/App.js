@@ -22,7 +22,7 @@ import OrderDetails from "./pages/OrderDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Quickfilters from "./pages/Quickfilters";
 import HeaderEditor from "./pages/HeaderEditor";
-
+import Campaigns from "./pages/Campaigns";
 import BrandManager from "./pages/BrandManager";
 import { ToastProvider } from "./context/ToastContext";
 export default function App() {
@@ -92,7 +92,7 @@ export default function App() {
 <Route path="/admin/add-category" element={<AddCategory />} />
 <Route path="/quick-filters" element={<ProtectedRoute><Quickfilters /></ProtectedRoute>} />
 <Route path="/header-editor" element={<ProtectedRoute><HeaderEditor /></ProtectedRoute>} />
-
+<Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
           {/* GLOBAL ORDERS */}
           <Route
             path="/orders"
