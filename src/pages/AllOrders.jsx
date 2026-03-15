@@ -15,7 +15,6 @@ import { useToast } from "../context/ToastContext";
 /* ─── STATUS META ────────────────────────────────────────────────────────────── */
 const STATUS_META = {
   Placed:         { color: "#6366f1", bg: "#eef2ff",  label: "Placed"          },
-  Confirmed:      { color: "#8b5cf6", bg: "#f5f3ff",  label: "Confirmed"       },
   Packed:         { color: "#f59e0b", bg: "#fffbeb",  label: "Packed"          },
   OutForDelivery: { color: "#0ea5e9", bg: "#e0f2fe",  label: "Out for Delivery" },
   Delivered:      { color: "#22c55e", bg: "#f0fdf4",  label: "Delivered"       },
