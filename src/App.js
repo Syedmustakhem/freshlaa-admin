@@ -26,6 +26,7 @@ import Campaigns from "./pages/Campaigns";
 import BrandManager from "./pages/BrandManager";
 import AppNotifications from "./pages/Appnotifications"; // ✅ NEW
 import { ToastProvider } from "./context/ToastContext";
+import DeliveryPanel from "./pages/DeliveryPanel";
 
 export default function App() {
   return (
@@ -57,7 +58,7 @@ export default function App() {
           <Route path="/restaurants/:id/orders" element={<ProtectedRoute><RestaurantOrders /></ProtectedRoute>} />
           <Route path="/restaurants/:id/dashboard" element={<ProtectedRoute><RestaurantDashboard /></ProtectedRoute>} />
           <Route path="/banners" element={<ProtectedRoute><Banners /></ProtectedRoute>} />
-
+<Route path="/delivery" element={<ProtectedRoute><DeliveryPanel /></ProtectedRoute>} />
           {/* ✅ NEW */}
           <Route path="/app-notifications" element={<ProtectedRoute><AppNotifications /></ProtectedRoute>} />
         </Routes>

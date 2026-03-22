@@ -29,6 +29,7 @@ export default function Sidebar() {
         <NavItem to="/campaigns"          icon={<Megaphone size={18} />}       label="Campaigns" />
         {/* ✅ NEW */}
         <NavItem to="/app-notifications"  icon={<Bell size={18} />}            label="App Notifications" />
+<NavItem to="/delivery" icon={<span>🛵</span>} label="Delivery Panel" />
       </nav>
     </aside>
   );
