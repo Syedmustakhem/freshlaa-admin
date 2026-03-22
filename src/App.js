@@ -27,14 +27,20 @@ import BrandManager from "./pages/BrandManager";
 import AppNotifications from "./pages/Appnotifications"; // ✅ NEW
 import { ToastProvider } from "./context/ToastContext";
 import DeliveryPanel from "./pages/DeliveryPanel";
-
+import RiderLogin     from "./pages/rider/RiderLogin";
+import RiderDashboard from "./pages/rider/RiderDashboard";
+import RiderEarnings  from "./pages/rider/RiderEarnings";
+import RiderProfile   from "./pages/rider/RiderProfile";
 export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
         <Routes>
           <Route path="/" element={<Login />} />
-
+<Route path="/rider/login"     element={<RiderLogin />} />
+<Route path="/rider/dashboard" element={<RiderDashboard />} />
+<Route path="/rider/earnings"  element={<RiderEarnings />} />
+<Route path="/rider/profile"   element={<RiderProfile />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/coupons" element={<ProtectedRoute><Coupons /></ProtectedRoute>} />
           <Route path="/brand-manager" element={<ProtectedRoute><BrandManager /></ProtectedRoute>} />
