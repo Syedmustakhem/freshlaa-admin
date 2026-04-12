@@ -3,6 +3,8 @@ import HomeLayout from "./pages/HomeLayout";
 import AddCategory from "./pages/AddCategory";
 import Coupons from "./pages/Coupons";
 import Login from "./pages/Login";
+import Reviews from "./pages/Reviews";
+
 import Dashboard from "./pages/Dashboard";
 import Restaurants from "./pages/Restaurants";
 import Products from "./pages/Products";
@@ -27,20 +29,21 @@ import BrandManager from "./pages/BrandManager";
 import AppNotifications from "./pages/Appnotifications"; // ✅ NEW
 import { ToastProvider } from "./context/ToastContext";
 import DeliveryPanel from "./pages/DeliveryPanel";
-import RiderLogin     from "./pages/rider/RiderLogin";
+import RiderLogin from "./pages/rider/RiderLogin";
 import RiderDashboard from "./pages/rider/RiderDashboard";
-import RiderEarnings  from "./pages/rider/RiderEarnings";
-import RiderProfile   from "./pages/rider/RiderProfile";
+import RiderEarnings from "./pages/rider/RiderEarnings";
+import RiderProfile from "./pages/rider/RiderProfile";
 export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
         <Routes>
           <Route path="/" element={<Login />} />
-<Route path="/rider/login"     element={<RiderLogin />} />
-<Route path="/rider/dashboard" element={<RiderDashboard />} />
-<Route path="/rider/earnings"  element={<RiderEarnings />} />
-<Route path="/rider/profile"   element={<RiderProfile />} />
+          <Route path="/rider/login" element={<RiderLogin />} />
+          <Route path="/rider/dashboard" element={<RiderDashboard />} />
+          <Route path="/rider/earnings" element={<RiderEarnings />} />
+          <Route path="/rider/profile" element={<RiderProfile />} />
+          <Route path="/reviews" element={<ProtectedRoute><Reviews /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/coupons" element={<ProtectedRoute><Coupons /></ProtectedRoute>} />
           <Route path="/brand-manager" element={<ProtectedRoute><BrandManager /></ProtectedRoute>} />
@@ -64,7 +67,7 @@ export default function App() {
           <Route path="/restaurants/:id/orders" element={<ProtectedRoute><RestaurantOrders /></ProtectedRoute>} />
           <Route path="/restaurants/:id/dashboard" element={<ProtectedRoute><RestaurantDashboard /></ProtectedRoute>} />
           <Route path="/banners" element={<ProtectedRoute><Banners /></ProtectedRoute>} />
-<Route path="/delivery" element={<ProtectedRoute><DeliveryPanel /></ProtectedRoute>} />
+          <Route path="/delivery" element={<ProtectedRoute><DeliveryPanel /></ProtectedRoute>} />
           {/* ✅ NEW */}
           <Route path="/app-notifications" element={<ProtectedRoute><AppNotifications /></ProtectedRoute>} />
         </Routes>

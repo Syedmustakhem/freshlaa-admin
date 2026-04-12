@@ -86,17 +86,6 @@ export default function Users() {
   const totalPages = Math.max(1, Math.ceil(users.length / pageSize));
   const paginated  = users.slice((page - 1) * pageSize, page * pageSize);
 
-  const PagBtn = ({ onClick, disabled, active, label }) => (
-    <button onClick={onClick} disabled={disabled} style={{
-      minWidth: 32, height: 32, padding: "0 6px", borderRadius: 7,
-      border: active ? "1px solid #6366f1" : "1px solid #e5e7eb",
-      background: active ? "#6366f1" : disabled ? "#f9fafb" : "#fff",
-      color: active ? "#fff" : disabled ? "#d1d5db" : "#374151",
-      cursor: disabled ? "not-allowed" : "pointer",
-      fontSize: 13, fontWeight: active ? 700 : 400,
-    }}>{label}</button>
-  );
-
   /* ─────────── RENDER ─────────── */
   return (
     <AdminLayout>
