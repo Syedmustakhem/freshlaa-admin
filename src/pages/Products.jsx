@@ -17,6 +17,9 @@ const emptyProduct = {
   name: "", description: "", sectionId: "",
   subCategory: "", category: "", images: [""],
   quickFilter: "",
+  isFlashSale: false,
+  flashSalePrice: 0,
+  flashSaleEndTime: "",
   variants: [{ ...emptyVariant }],
 };
 
@@ -163,6 +166,9 @@ export default function Products() {
       variants: (product.variants || []).map(v => ({ ...v, unit: v.unit || "kg" })),
       category: product.category,
       subCategory: product.category,
+      isFlashSale: product.isFlashSale ?? false,
+      flashSalePrice: product.flashSalePrice ?? 0,
+      flashSaleEndTime: product.flashSaleEndTime ? new Date(product.flashSaleEndTime).toISOString().slice(0, 16) : "",
     });
   };
 
@@ -179,6 +185,9 @@ export default function Products() {
         images: editProduct.images,
         variants: editProduct.variants,
         quickFilter: editProduct.quickFilter || null,
+        isFlashSale: editProduct.isFlashSale,
+        flashSalePrice: Number(editProduct.flashSalePrice),
+        flashSaleEndTime: editProduct.flashSaleEndTime || null,
       }, { headers: authHeader() });
       setEditProduct(null);
       fetchProducts();
@@ -202,6 +211,9 @@ export default function Products() {
         subCategory: newProduct.category,
         quickFilter: newProduct.quickFilter || null,
         images: newProduct.images.filter(Boolean),
+        isFlashSale: newProduct.isFlashSale,
+        flashSalePrice: Number(newProduct.flashSalePrice),
+        flashSaleEndTime: newProduct.flashSaleEndTime || null,
         variants: newProduct.variants.map(v => ({
           label: v.label, unit: v.unit || "kg",
           value: Number(v.value || 1),
@@ -437,6 +449,27 @@ export default function Products() {
               </Select>
             </div>
           </Section>
+
+          <Section icon="⚡" title="Flash Sale">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, alignItems: "center" }}>
+              <div>
+                <Label>Enable Flash Sale</Label>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input type="checkbox" checked={newProduct.isFlashSale} onChange={e => setNewProduct(p => ({ ...p, isFlashSale: e.target.checked }))} style={{ width: 18, height: 18, cursor: "pointer" }} />
+                  <span style={{ fontSize: 13, color: "#374151" }}>{newProduct.isFlashSale ? "Active" : "Inactive"}</span>
+                </div>
+              </div>
+              <div>
+                <Label>Flash Sale Price (₹)</Label>
+                <Input type="number" placeholder="99" value={newProduct.flashSalePrice} onChange={e => setNewProduct(p => ({ ...p, flashSalePrice: e.target.value }))} disabled={!newProduct.isFlashSale} />
+              </div>
+              <div>
+                <Label>End Time</Label>
+                <Input type="datetime-local" value={newProduct.flashSaleEndTime} onChange={e => setNewProduct(p => ({ ...p, flashSaleEndTime: e.target.value }))} disabled={!newProduct.isFlashSale} />
+              </div>
+            </div>
+          </Section>
+
           <Section icon="📂" title="Category Selection">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div><Label>Section</Label>
@@ -491,6 +524,27 @@ export default function Products() {
               </Select>
             </div>
           </Section>
+
+          <Section icon="⚡" title="Flash Sale">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, alignItems: "center" }}>
+              <div>
+                <Label>Enable Flash Sale</Label>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input type="checkbox" checked={editProduct.isFlashSale} onChange={e => setEditProduct(p => ({ ...p, isFlashSale: e.target.checked }))} style={{ width: 18, height: 18, cursor: "pointer" }} />
+                  <span style={{ fontSize: 13, color: "#374151" }}>{editProduct.isFlashSale ? "Active" : "Inactive"}</span>
+                </div>
+              </div>
+              <div>
+                <Label>Flash Sale Price (₹)</Label>
+                <Input type="number" placeholder="99" value={editProduct.flashSalePrice} onChange={e => setEditProduct(p => ({ ...p, flashSalePrice: e.target.value }))} disabled={!editProduct.isFlashSale} />
+              </div>
+              <div>
+                <Label>End Time</Label>
+                <Input type="datetime-local" value={editProduct.flashSaleEndTime} onChange={e => setEditProduct(p => ({ ...p, flashSaleEndTime: e.target.value }))} disabled={!editProduct.isFlashSale} />
+              </div>
+            </div>
+          </Section>
+
           <Section icon="📂" title="Category">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
               <div><Label>Section</Label>
