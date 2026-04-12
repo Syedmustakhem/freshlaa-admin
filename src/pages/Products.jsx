@@ -381,7 +381,14 @@ export default function Products() {
                         )}
                         <div>
                           <div style={{ fontWeight: 600, color: "#111827" }}>{p.name}</div>
-                          <div style={{ fontSize: 11, color: "#9ca3af" }}>{p.variants?.length} variant{p.variants?.length !== 1 ? "s" : ""}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                            <span style={{ fontSize: 11, color: "#9ca3af" }}>{p.variants?.length} variant{p.variants?.length !== 1 ? "s" : ""}</span>
+                            {p.isFlashSale && (
+                              <span style={{ fontSize: 10, fontWeight: 900, background: "#fef2f2", color: "#ef4444", padding: "1px 6px", borderRadius: 4, border: "1px solid #fca5a5", display: "flex", alignItems: "center", gap: 3 }}>
+                                ⚡ FLASH
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
