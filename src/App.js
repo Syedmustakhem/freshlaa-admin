@@ -33,6 +33,8 @@ import RiderLogin from "./pages/rider/RiderLogin";
 import RiderDashboard from "./pages/rider/RiderDashboard";
 import RiderEarnings from "./pages/rider/RiderEarnings";
 import RiderProfile from "./pages/rider/RiderProfile";
+import EventsEditor from "./pages/EventsEditor";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -68,6 +70,7 @@ export default function App() {
           <Route path="/restaurants/:id/dashboard" element={<ProtectedRoute><RestaurantDashboard /></ProtectedRoute>} />
           <Route path="/banners" element={<ProtectedRoute><Banners /></ProtectedRoute>} />
           <Route path="/delivery" element={<ProtectedRoute><DeliveryPanel /></ProtectedRoute>} />
+          <Route path="/events-editor" element={<ProtectedRoute><EventsEditor /></ProtectedRoute>} />
           {/* ✅ NEW */}
           <Route path="/app-notifications" element={<ProtectedRoute><AppNotifications /></ProtectedRoute>} />
         </Routes>

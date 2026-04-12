@@ -29,6 +29,7 @@ export default function Sidebar() {
         <NavItem to="/header-editor" icon={<Search size={18} />} label="Header" />
         <NavItem to="/campaigns" icon={<Megaphone size={18} />} label="Campaigns" />
         <NavItem to="/reviews" icon={<Star size={18} />} label="Reviews" />
+        <NavItem to="/events-editor" icon={<span>📅</span>} label="Events Editor" />
 
         {/* ✅ NEW */}
         <NavItem to="/app-notifications" icon={<Bell size={18} />} label="App Notifications" />
