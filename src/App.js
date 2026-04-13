@@ -34,6 +34,8 @@ import RiderDashboard from "./pages/rider/RiderDashboard";
 import RiderEarnings from "./pages/rider/RiderEarnings";
 import RiderProfile from "./pages/rider/RiderProfile";
 import EventsEditor from "./pages/EventsEditor";
+import SupportTickets from "./pages/SupportTickets";
+import SupportTicketDetails from "./pages/SupportTicketDetails";
 
 export default function App() {
   return (
@@ -73,6 +75,8 @@ export default function App() {
           <Route path="/events-editor" element={<ProtectedRoute><EventsEditor /></ProtectedRoute>} />
           {/* ✅ NEW */}
           <Route path="/app-notifications" element={<ProtectedRoute><AppNotifications /></ProtectedRoute>} />
+          <Route path="/support" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
+          <Route path="/support/ticket/:id" element={<ProtectedRoute><SupportTicketDetails /></ProtectedRoute>} />
         </Routes>
       </ToastProvider>
     </BrowserRouter>
