@@ -289,6 +289,11 @@ function BannerCard({ banner, index, total, allProducts = [], onChange, onDelete
                     <label style={fieldLabel}>Badge Text (optional)</label>
                     <input style={fieldInput} value={banner.badge || ""} onChange={e => update("badge", e.target.value)} placeholder="e.g. 🔥 Limited Time" />
                   </div>
+                  <div>
+                    <label style={fieldLabel}>Countdown Timer (optional)</label>
+                    <input type="datetime-local" style={fieldInput} value={banner.timerEndsAt || ""} onChange={e => update("timerEndsAt", e.target.value)} />
+                    <span style={{ fontSize: 10, color: "#64748b", marginTop: 4, display: "block" }}>Adds a live countdown overlay on the app</span>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -409,7 +414,7 @@ export default function BannerEditor() {
     if (t < 0 || t >= n.length) return;
     [n[idx], n[t]] = [n[t], n[idx]]; setBanners(n);
   };
-  const addBanner = () => setBanners([...banners, { url: "", title: "", subtitle: "", badge: "", productIds: [], action: { type: "navigate", screen: "LandingScreen" } }]);
+  const addBanner = () => setBanners([...banners, { url: "", title: "", subtitle: "", badge: "", timerEndsAt: "", productIds: [], action: { type: "navigate", screen: "LandingScreen" } }]);
 
   const handleSave = async () => {
     setSaving(true);
