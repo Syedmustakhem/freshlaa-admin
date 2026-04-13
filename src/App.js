@@ -36,6 +36,7 @@ import RiderProfile from "./pages/rider/RiderProfile";
 import EventsEditor from "./pages/EventsEditor";
 import SupportTickets from "./pages/SupportTickets";
 import SupportTicketDetails from "./pages/SupportTicketDetails";
+import ServiceableAreas from "./pages/ServiceableAreas";
 
 export default function App() {
   return (
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="/app-notifications" element={<ProtectedRoute><AppNotifications /></ProtectedRoute>} />
           <Route path="/support" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
           <Route path="/support/ticket/:id" element={<ProtectedRoute><SupportTicketDetails /></ProtectedRoute>} />
+          <Route path="/serviceable-areas" element={<ProtectedRoute><ServiceableAreas /></ProtectedRoute>} />
         </Routes>
       </ToastProvider>
     </BrowserRouter>
