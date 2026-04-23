@@ -6,9 +6,6 @@ import api from "../services/api";
 /* ─────────────────────────────────────────────
    HELPERS
 ───────────────────────────────────────────── */
-const authHeader = () => ({
-    Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-});
 const Avatar = ({ name }) => {
     const initials = (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
     const colors = ["#6366f1", "#0ea5e9", "#f59e0b", "#22c55e", "#ec4899", "#8b5cf6", "#14b8a6"];
@@ -324,6 +321,7 @@ export default function Reviews() {
     const [typeFilter, setTypeFilter] = useState("");
     const [ratingFilter, setRatingFilter] = useState("");
     const [photoFilter, setPhotoFilter] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     // Modals
     const [replyReview, setReplyReview] = useState(null);
     const [rejectReview, setRejectReview] = useState(null);
@@ -345,10 +343,10 @@ export default function Reviews() {
                 ...(typeFilter && { reviewType: typeFilter }),
                 ...(ratingFilter && { minRating: ratingFilter, maxRating: ratingFilter }),
                 ...(photoFilter && { withPhotos: "true" }),
+                ...(searchQuery && { search: searchQuery }),
             };
             const res = await api.get("/reviews/admin/all", {
                 params,
-                headers: authHeader(),
             });
             if (res.data.success) {
                 setReviews(res.data.reviews || []);
@@ -367,7 +365,7 @@ export default function Reviews() {
     const handleApprove = async (id) => {
         setActionId(id);
         try {
-            await api.patch(`/reviews/admin/${id}/status`, { status: "approved" }, { headers: authHeader() });
+            await api.patch(`/reviews/admin/${id}/status`, { status: "approved" });
             setReviews(prev => prev.map(r => r._id === id ? { ...r, status: "approved" } : r));
             showToast("Review approved");
         } catch {
@@ -382,7 +380,7 @@ export default function Reviews() {
             await api.patch(`/reviews/admin/${id}/status`, {
                 status: "rejected",
                 ...(reason && { rejectionReason: reason }),
-            }, { headers: authHeader() });
+            });
             setReviews(prev => prev.map(r => r._id === id
                 ? { ...r, status: "rejected", rejectionReason: reason || null }
                 : r
@@ -396,7 +394,7 @@ export default function Reviews() {
     };
     const handleReply = async (id, message) => {
         try {
-            await api.post(`/reviews/${id}/reply`, { message }, { headers: authHeader() });
+            await api.post(`/reviews/${id}/reply`, { message });
             setReviews(prev => prev.map(r => r._id === id
                 ? { ...r, reply: { message, repliedAt: new Date().toISOString() } }
                 : r
@@ -407,6 +405,19 @@ export default function Reviews() {
             throw new Error("Failed");
         }
     };
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this review?")) return;
+        setActionId(id);
+        try {
+            await api.delete(`/reviews/admin/${id}`);
+            setReviews(prev => prev.filter(r => r._id !== id));
+            showToast("Review deleted");
+        } catch {
+            showToast("Failed to delete", "error");
+        } finally {
+            setActionId(null);
+        }
+    };
     /* ─── STATS ─── */
     const pendingCount = reviews.filter(r => r.status === "pending").length;
     const approvedCount = reviews.filter(r => r.status === "approved").length;
@@ -414,7 +425,7 @@ export default function Reviews() {
     const avgRating = reviews.length > 0
         ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
         : "0.0";
-    const hasFilters = statusFilter || typeFilter || ratingFilter || photoFilter;
+    const hasFilters = statusFilter || typeFilter || ratingFilter || photoFilter || searchQuery;
     /* ─────────── RENDER ─────────── */
     return (
         <AdminLayout>
@@ -519,6 +530,25 @@ export default function Reviews() {
                     boxShadow: "0 1px 3px rgba(0,0,0,.06)",
                 }}
             >
+                {/* Search */}
+                <div style={{ flex: "1 1 200px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: .5, marginBottom: 5 }}>Search</div>
+                    <div style={{ position: "relative" }}>
+                        <input
+                            type="text"
+                            placeholder="Review content..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            onKeyPress={e => e.key === "Enter" && fetchReviews(1)}
+                            style={{
+                                width: "100%", padding: "8px 10px 8px 32px", borderRadius: 8,
+                                border: "1px solid #d1d5db", fontSize: 13, outline: "none",
+                                boxSizing: "border-box", background: "#fff"
+                            }}
+                        />
+                        <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 14 }}>🔍</span>
+                    </div>
+                </div>
                 {/* Status */}
                 <div style={{ flex: "0 0 150px" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: .5, marginBottom: 5 }}>Status</div>
@@ -583,7 +613,7 @@ export default function Reviews() {
                 {/* Clear */}
                 {hasFilters && (
                     <button
-                        onClick={() => { setStatusFilter(""); setTypeFilter(""); setRatingFilter(""); setPhotoFilter(false); setPage(1); }}
+                        onClick={() => { setStatusFilter(""); setTypeFilter(""); setRatingFilter(""); setPhotoFilter(false); setSearchQuery(""); setPage(1); }}
                         style={{
                             alignSelf: "flex-end", padding: "8px 14px", borderRadius: 8,
                             border: "1px solid #fca5a5", background: "#fef2f2",
@@ -788,6 +818,19 @@ export default function Reviews() {
                                             }}
                                         >
                                             💬 {r.reply ? "Edit Reply" : "Reply"}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(r._id)}
+                                            disabled={isActioning}
+                                            style={{
+                                                display: "flex", alignItems: "center", gap: 4,
+                                                padding: "6px 14px", borderRadius: 8,
+                                                border: "1px solid #fecaca", background: "#fff",
+                                                color: "#ef4444", cursor: "pointer", fontSize: 12, fontWeight: 600,
+                                                opacity: isActioning ? 0.5 : 1,
+                                            }}
+                                        >
+                                            🗑️ Delete
                                         </button>
                                     </div>
                                 </motion.div>
