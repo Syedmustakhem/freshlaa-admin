@@ -123,7 +123,7 @@ export default function Login() {
           >
             <div className="success-check">✓</div>
             <h3>Login Successful</h3>
-            <p>Redirecting to dashboard…</p>
+            <p>Redirecting to dashboardd…</p>
           </motion.div>
         )}
       </AnimatePresence>
