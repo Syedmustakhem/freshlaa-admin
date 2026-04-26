@@ -3,14 +3,14 @@ import api from "../services/api";
 import { Reorder } from "framer-motion";
 import { toast } from "react-toastify";
 
-export default function HomeLayout() {
+const HomeLayout = () => {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const loadSections = async () => {
     try {
-      const res = await api.get("/admin/home-layout"); // ✅ admin API
+      const res = await api.get("/admin/home-layout");
       setSections(res.data.sections || []);
     } catch {
       toast.error("Failed to load home layout");
@@ -53,54 +53,99 @@ export default function HomeLayout() {
   if (loading) return <div className="p-4">Loading home layout…</div>;
 
   return (
-    <div className="home-layout-page container mt-4" style={{ height: "calc(100vh - 80px)", overflowY: "auto", paddingBottom: "50px" }}>
-      <div className="home-layout-header d-flex justify-content-between align-items-center mb-3">
-        <h3>🏠 Home Layout</h3>
-        {saving && <span className="badge bg-primary">Saving changes...</span>}
+    <div className="home-layout-container" style={{ padding: '20px', height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        .home-layout-scroll-area {
+          flex: 1;
+          overflow-y: auto;
+          padding-right: 10px;
+          margin-top: 20px;
+          min-height: 400px;
+        }
+        .home-layout-item-card {
+          background: #fff;
+          border-radius: 12px;
+          padding: 15px;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          border: 1px solid #eee;
+          transition: transform 0.2s;
+        }
+        .drag-handle {
+          cursor: grab;
+          color: #999;
+          margin-right: 15px;
+          font-size: 20px;
+        }
+        .save-banner {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #4f46e5;
+          color: white;
+          padding: 10px 20px;
+          border-radius: 30px;
+          font-weight: 600;
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+          z-index: 1000;
+        }
+      `}</style>
+
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <h3 className="fw-bold m-0">🏠 Home Layout Editor</h3>
+          <p className="text-muted small m-0">Drag handle to reorder • Changes save automatically</p>
+        </div>
+        <button className="btn btn-primary btn-sm px-4" onClick={saveOrder} disabled={saving}>
+          {saving ? 'Saving...' : 'Force Save Order'}
+        </button>
       </div>
 
-      <Reorder.Group
-        axis="y"
-        values={sections}
-        onReorder={setSections}
-        onDragEnd={saveOrder}
-        className="home-layout-list list-unstyled"
-      >
-        {sections.map((sec) => (
-          <Reorder.Item
-            key={sec._id}
-            value={sec}
-            className="home-layout-item card mb-2 shadow-sm"
-            style={{ cursor: "grab" }}
-          >
-            <div className="card-body d-flex align-items-center justify-content-between p-3">
-              <div className="home-layout-left d-flex align-items-center">
-                <span className="drag-handle me-3" style={{ fontSize: "20px", color: "#ccc" }}>☰</span>
-                <div className="d-flex flex-column">
-                  <span className="section-type fw-bold">{sec.type}</span>
-                  <span
-                    className={`badge ${
-                      sec.isActive ? "bg-success" : "bg-secondary"
-                    } mt-1`}
-                    style={{ width: "fit-content", fontSize: "10px" }}
-                  >
-                    {sec.isActive ? "ACTIVE" : "DISABLED"}
-                  </span>
+      {saving && <div className="save-banner">Saving Changes...</div>}
+
+      <div className="home-layout-scroll-area">
+        <Reorder.Group
+          axis="y"
+          values={sections}
+          onReorder={setSections}
+          onDragEnd={saveOrder}
+          className="list-unstyled"
+        >
+          {sections.map((sec) => (
+            <Reorder.Item
+              key={sec._id || sec.id}
+              value={sec}
+              className="home-layout-item-card"
+            >
+              <div className="d-flex align-items-center">
+                <span className="drag-handle">☰</span>
+                <div>
+                  <div className="fw-bold text-dark">{sec.type}</div>
+                  <div className="text-muted" style={{ fontSize: '10px' }}>{sec._id || sec.id}</div>
                 </div>
               </div>
 
-              <button
-                className={`btn btn-sm ${
-                  sec.isActive ? "btn-outline-danger" : "btn-outline-success"
-                }`}
-                onClick={() => toggleSection(sec._id)}
-              >
-                {sec.isActive ? "Disable" : "Enable"}
-              </button>
-            </div>
-          </Reorder.Item>
-        ))}
-      </Reorder.Group>
+              <div className="d-flex align-items-center gap-3">
+                <span className={`badge ${sec.isActive ? 'bg-success-subtle text-success' : 'bg-light text-muted'}`}>
+                  {sec.isActive ? 'VISIBLE' : 'HIDDEN'}
+                </span>
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={sec.isActive}
+                    onChange={() => toggleSection(sec._id || sec.id)}
+                    style={{ cursor: 'pointer', scale: '1.2' }}
+                  />
+                </div>
+              </div>
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
+      </div>
     </div>
   );
 };
