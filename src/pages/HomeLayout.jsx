@@ -44,6 +44,17 @@ const HomeLayout = () => {
     }
   };
 
+  const deleteSection = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this section?")) return;
+    try {
+      await api.delete(`/admin/home-section/${id}`);
+      loadSections();
+      toast.success("Section deleted");
+    } catch {
+      toast.error("Failed to delete section");
+    }
+  };
+
   const saveOrder = async () => {
     try {
       setSaving(true);
@@ -120,6 +131,9 @@ const HomeLayout = () => {
           <button className="btn btn-outline-primary btn-sm px-3" onClick={() => addSection("DYNAMIC_CATEGORIES")}>
             + Add Dynamic Section
           </button>
+          <button className="btn btn-outline-success btn-sm px-3" onClick={() => addSection("SERVICE_HIGHLIGHTS")}>
+            + Add Service Highlights
+          </button>
           <button className="btn btn-primary px-4" onClick={saveOrder} disabled={saving}>
             {saving ? 'Saving...' : 'Save Layout'}
           </button>
@@ -190,6 +204,13 @@ const HomeLayout = () => {
                     style={{ cursor: 'pointer', scale: '1.2' }}
                   />
                 </div>
+                <button 
+                  className="btn btn-link text-danger p-0 ms-2" 
+                  onClick={() => deleteSection(sec._id || sec.id)}
+                  title="Delete Section"
+                >
+                  🗑️
+                </button>
               </div>
             </Reorder.Item>
           ))}
