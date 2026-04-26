@@ -235,6 +235,32 @@ const HomeLayout = () => {
                         style={{ fontSize: '10px', width: '120px' }}
                       />
                     )}
+
+                    {sec.type === "DYNAMIC_CATEGORIES" && (
+                      <div className="mt-2">
+                        <label style={{ fontSize: '9px', fontWeight: 'bold' }}>Manual Items (JSON)</label>
+                        <textarea
+                          className="form-control form-control-sm"
+                          placeholder='[{"title":"Sale","image":"url","productIds":["id1"]}]'
+                          defaultValue={JSON.stringify(sec.data?.manualItems || [])}
+                          onBlur={async (e) => {
+                            try {
+                              const manualItems = JSON.parse(e.target.value);
+                              if (JSON.stringify(manualItems) === JSON.stringify(sec.data?.manualItems)) return;
+                              await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                                ...sec,
+                                data: { ...sec.data, manualItems }
+                              });
+                              loadSections();
+                              toast.success("Manual items updated");
+                            } catch {
+                              toast.error("Invalid JSON format");
+                            }
+                          }}
+                          style={{ fontSize: '10px', height: '60px', width: '120px' }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
