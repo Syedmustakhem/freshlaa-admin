@@ -36,12 +36,19 @@ const HomeLayout = () => {
   const saveOrder = async () => {
     try {
       setSaving(true);
-      const payload = sections.map((s, i) => ({
-        _id: s._id || s.id,
-        id: s._id || s.id,
-        order: i + 1,
-      }));
+      const payload = sections
+        .map((s, i) => ({
+          _id: s._id || s.id,
+          id: s._id || s.id,
+          order: i + 1,
+        }))
+        .filter(item => item._id); // 🛡️ CRITICAL: Remove any items with missing IDs
       
+      if (payload.length === 0) {
+        toast.warn("No items to reorder");
+        return;
+      }
+
       console.log("Saving order with payload:", payload);
       
       await api.put("/admin/home-section/reorder", {
