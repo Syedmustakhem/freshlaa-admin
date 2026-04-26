@@ -32,6 +32,17 @@ const HomeLayout = () => {
       toast.error("Failed to update section");
     }
   };
+  
+  const addSection = async (type) => {
+    try {
+      const order = sections.length + 1;
+      await api.post("/admin/home-section", { type, order, data: { layoutStyle: "GRID" } });
+      loadSections();
+      toast.success(`${type} section added`);
+    } catch {
+      toast.error("Failed to add section");
+    }
+  };
 
   const saveOrder = async () => {
     try {
@@ -106,6 +117,9 @@ const HomeLayout = () => {
         </div>
         <div className="d-flex align-items-center gap-2">
           {saving && <span className="badge bg-primary">Saving...</span>}
+          <button className="btn btn-outline-primary btn-sm px-3" onClick={() => addSection("DYNAMIC_CATEGORIES")}>
+            + Add Dynamic Section
+          </button>
           <button className="btn btn-primary px-4" onClick={saveOrder} disabled={saving}>
             {saving ? 'Saving...' : 'Save Layout'}
           </button>
@@ -135,7 +149,35 @@ const HomeLayout = () => {
                 </div>
               </div>
 
-              <div className="d-flex align-items-center gap-3">
+              <div className="d-flex align-items-center gap-2">
+                {["CATEGORIES", "ZEPTO_CATEGORIES", "ZOMATO", "CATEGORY_CAROUSEL", "DYNAMIC_CATEGORIES"].includes(sec.type) && (
+                  <div className="me-2">
+                    <select
+                      className="form-select form-select-sm"
+                      value={sec.data?.layoutStyle || "GRID"}
+                      onChange={async (e) => {
+                        const style = e.target.value;
+                        try {
+                          await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                            ...sec,
+                            data: { ...sec.data, layoutStyle: style }
+                          });
+                          loadSections();
+                          toast.success(`Layout changed to ${style}`);
+                        } catch {
+                          toast.error("Failed to update layout style");
+                        }
+                      }}
+                      style={{ fontSize: '10px', width: '100px' }}
+                    >
+                      <option value="GRID">Standard Grid</option>
+                      <option value="BENTO">Bento Grid</option>
+                      <option value="VERTICAL">Vertical Banners</option>
+                      <option value="CIRCLES">Circle Bubbles</option>
+                    </select>
+                  </div>
+                )}
+
                 <span className={`badge ${sec.isActive ? 'bg-success' : 'bg-secondary'}`} style={{ fontSize: '10px' }}>
                   {sec.isActive ? 'ACTIVE' : 'HIDDEN'}
                 </span>
