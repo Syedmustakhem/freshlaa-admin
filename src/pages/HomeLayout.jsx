@@ -58,7 +58,12 @@ const HomeLayout = () => {
       toast.success("Order saved");
     } catch (err) {
       console.error("Save order error:", err);
-      toast.error("Failed to save order");
+      if (err.response?.data) {
+        console.error("Server Error Details:", err.response.data);
+        toast.error(`Error: ${err.response.data.message || "Server error"}`);
+      } else {
+        toast.error("Failed to save order");
+      }
     } finally {
       setSaving(false);
     }
