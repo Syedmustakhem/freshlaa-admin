@@ -53,51 +53,56 @@ export default function HomeLayout() {
   if (loading) return <div className="p-4">Loading home layout…</div>;
 
   return (
-   <div className="home-layout-page container mt-4">
-  <div className="home-layout-header">
-    <h3>🏠 Home Layout</h3>
-    {saving && <span className="saving-indicator">Saving…</span>}
-  </div>
+    <div className="home-layout-page container mt-4" style={{ height: "calc(100vh - 80px)", overflowY: "auto", paddingBottom: "50px" }}>
+      <div className="home-layout-header d-flex justify-content-between align-items-center mb-3">
+        <h3>🏠 Home Layout</h3>
+        {saving && <span className="badge bg-primary">Saving changes...</span>}
+      </div>
 
-  <Reorder.Group
-    axis="y"
-    values={sections}
-    onReorder={setSections}
-    onDragEnd={saveOrder}
-    className="home-layout-list"
-  >
-    {sections.map((sec) => (
-      <Reorder.Item
-        key={sec._id}
-        value={sec}
-        className="home-layout-item"
+      <Reorder.Group
+        axis="y"
+        values={sections}
+        onReorder={setSections}
+        onDragEnd={saveOrder}
+        className="home-layout-list list-unstyled"
       >
-        <div className="home-layout-left">
-          <span className="drag-handle">☰</span>
-
-          <span className="section-type">{sec.type}</span>
-
-          <span
-            className={`section-status ${
-              sec.isActive ? "active" : "disabled"
-            }`}
+        {sections.map((sec) => (
+          <Reorder.Item
+            key={sec._id}
+            value={sec}
+            className="home-layout-item card mb-2 shadow-sm"
+            style={{ cursor: "grab" }}
           >
-            {sec.isActive ? "ACTIVE" : "DISABLED"}
-          </span>
-        </div>
+            <div className="card-body d-flex align-items-center justify-content-between p-3">
+              <div className="home-layout-left d-flex align-items-center">
+                <span className="drag-handle me-3" style={{ fontSize: "20px", color: "#ccc" }}>☰</span>
+                <div className="d-flex flex-column">
+                  <span className="section-type fw-bold">{sec.type}</span>
+                  <span
+                    className={`badge ${
+                      sec.isActive ? "bg-success" : "bg-secondary"
+                    } mt-1`}
+                    style={{ width: "fit-content", fontSize: "10px" }}
+                  >
+                    {sec.isActive ? "ACTIVE" : "DISABLED"}
+                  </span>
+                </div>
+              </div>
 
-        <button
-          className={`section-action-btn ${
-            sec.isActive ? "disable" : "enable"
-          }`}
-          onClick={() => toggleSection(sec._id)}
-        >
-          {sec.isActive ? "Disable" : "Enable"}
-        </button>
-      </Reorder.Item>
-    ))}
-  </Reorder.Group>
-</div>
-
+              <button
+                className={`btn btn-sm ${
+                  sec.isActive ? "btn-outline-danger" : "btn-outline-success"
+                }`}
+                onClick={() => toggleSection(sec._id)}
+              >
+                {sec.isActive ? "Disable" : "Enable"}
+              </button>
+            </div>
+          </Reorder.Item>
+        ))}
+      </Reorder.Group>
+    </div>
   );
-}
+};
+
+export default HomeLayout;
