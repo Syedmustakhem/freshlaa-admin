@@ -167,7 +167,7 @@ const HomeLayout = () => {
                 {["CATEGORIES", "ZEPTO_CATEGORIES", "ZOMATO", "CATEGORY_CAROUSEL", "DYNAMIC_CATEGORIES"].includes(sec.type) && (
                   <div className="me-2">
                     <select
-                      className="form-select form-select-sm"
+                      className="form-select form-select-sm mb-1"
                       value={sec.data?.layoutStyle || "GRID"}
                       onChange={async (e) => {
                         const style = e.target.value;
@@ -182,13 +182,85 @@ const HomeLayout = () => {
                           toast.error("Failed to update layout style");
                         }
                       }}
-                      style={{ fontSize: '10px', width: '100px' }}
+                      style={{ fontSize: '10px', width: '120px' }}
                     >
                       <option value="GRID">Standard Grid</option>
                       <option value="BENTO">Bento Grid</option>
                       <option value="VERTICAL">Vertical Banners</option>
                       <option value="CIRCLES">Circle Bubbles</option>
                     </select>
+
+                    <input
+                      type="text"
+                      className="form-control form-control-sm mb-1"
+                      placeholder="Section Title"
+                      defaultValue={sec.data?.title || ""}
+                      onBlur={async (e) => {
+                        const title = e.target.value;
+                        if (title === sec.data?.title) return;
+                        try {
+                          await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                            ...sec,
+                            data: { ...sec.data, title }
+                          });
+                          loadSections();
+                          toast.success("Title updated");
+                        } catch {
+                          toast.error("Failed to update title");
+                        }
+                      }}
+                      style={{ fontSize: '10px', width: '120px' }}
+                    />
+
+                    {sec.type === "DYNAMIC_CATEGORIES" && (
+                      <input
+                        type="text"
+                        className="form-control form-control-sm"
+                        placeholder="Category Slugs (fruits,veg)"
+                        defaultValue={sec.data?.categorySlugs || ""}
+                        onBlur={async (e) => {
+                          const slugs = e.target.value;
+                          if (slugs === sec.data?.categorySlugs) return;
+                          try {
+                            await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                              ...sec,
+                              data: { ...sec.data, categorySlugs: slugs }
+                            });
+                            loadSections();
+                            toast.success("Categories updated");
+                          } catch {
+                            toast.error("Failed to update categories");
+                          }
+                        }}
+                        style={{ fontSize: '10px', width: '120px' }}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {sec.type === "SERVICE_HIGHLIGHTS" && (
+                  <div className="me-2">
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Section Title"
+                      defaultValue={sec.data?.title || ""}
+                      onBlur={async (e) => {
+                        const title = e.target.value;
+                        if (title === sec.data?.title) return;
+                        try {
+                          await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                            ...sec,
+                            data: { ...sec.data, title }
+                          });
+                          loadSections();
+                          toast.success("Title updated");
+                        } catch {
+                          toast.error("Failed to update title");
+                        }
+                      }}
+                      style={{ fontSize: '10px', width: '120px' }}
+                    />
                   </div>
                 )}
 
