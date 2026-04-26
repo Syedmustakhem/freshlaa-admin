@@ -37,8 +37,8 @@ export default function HomeLayout() {
     try {
       setSaving(true);
       await api.put("/admin/home-section/reorder", {
-        order: sections.map((s, i) => ({
-          id: s.id,
+        sections: sections.map((s, i) => ({
+          _id: s._id,
           order: i + 1,
         })),
       });
@@ -68,7 +68,7 @@ export default function HomeLayout() {
   >
     {sections.map((sec) => (
       <Reorder.Item
-        key={sec.id}
+        key={sec._id}
         value={sec}
         className="home-layout-item"
       >
@@ -90,7 +90,7 @@ export default function HomeLayout() {
           className={`section-action-btn ${
             sec.isActive ? "disable" : "enable"
           }`}
-          onClick={() => toggleSection(sec.id)}
+          onClick={() => toggleSection(sec._id)}
         >
           {sec.isActive ? "Disable" : "Enable"}
         </button>
