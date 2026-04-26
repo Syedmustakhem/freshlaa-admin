@@ -264,6 +264,86 @@ const HomeLayout = () => {
                   </div>
                 )}
 
+                {sec.type === "FOOTER" && (
+                  <div className="me-2 d-flex flex-column gap-1" style={{ width: '150px' }}>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Headline"
+                      defaultValue={sec.data?.headline || ""}
+                      onBlur={async (e) => {
+                        const val = e.target.value;
+                        if (val === sec.data?.headline) return;
+                        try {
+                          await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                            ...sec,
+                            data: { ...sec.data, headline: val }
+                          });
+                          loadSections();
+                          toast.success("Footer updated");
+                        } catch {
+                          toast.error("Failed to update footer");
+                        }
+                      }}
+                      style={{ fontSize: '10px' }}
+                    />
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Accent (e.g. 10 minutes)"
+                      defaultValue={sec.data?.headlineAccent || ""}
+                      onBlur={async (e) => {
+                        const val = e.target.value;
+                        if (val === sec.data?.headlineAccent) return;
+                        try {
+                          await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                            ...sec,
+                            data: { ...sec.data, headlineAccent: val }
+                          });
+                          loadSections();
+                        } catch {}
+                      }}
+                      style={{ fontSize: '10px' }}
+                    />
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Tagline"
+                      defaultValue={sec.data?.tagline || ""}
+                      onBlur={async (e) => {
+                        const val = e.target.value;
+                        if (val === sec.data?.tagline) return;
+                        try {
+                          await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                            ...sec,
+                            data: { ...sec.data, tagline: val }
+                          });
+                          loadSections();
+                        } catch {}
+                      }}
+                      style={{ fontSize: '10px' }}
+                    />
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      placeholder="Copyright"
+                      defaultValue={sec.data?.copyright || ""}
+                      onBlur={async (e) => {
+                        const val = e.target.value;
+                        if (val === sec.data?.copyright) return;
+                        try {
+                          await api.put(`/admin/home-section/${sec._id || sec.id}`, {
+                            ...sec,
+                            data: { ...sec.data, copyright: val }
+                          });
+                          loadSections();
+                        } catch {}
+                      }}
+                      style={{ fontSize: '10px' }}
+                    />
+                  </div>
+                )}
+
                 <span className={`badge ${sec.isActive ? 'bg-success' : 'bg-secondary'}`} style={{ fontSize: '10px' }}>
                   {sec.isActive ? 'ACTIVE' : 'HIDDEN'}
                 </span>
