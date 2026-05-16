@@ -299,6 +299,20 @@ export default function AppConfig() {
                   />
                 </div>
                 <div>
+                  <label htmlFor="cutoff-hour" style={fieldLabel}>Night Delivery Cutoff (24h Format)</label>
+                  <input 
+                    id="cutoff-hour"
+                    name="cutoff-hour"
+                    type="number"
+                    min="0"
+                    max="23"
+                    style={fieldInput}
+                    value={config.deliveryTiming?.cutoffHour || 22}
+                    onChange={(e) => updateDelivery("cutoffHour", Number(e.target.value))}
+                  />
+                  <p style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>After this hour, the app will switch to "Scheduled for Tomorrow".</p>
+                </div>
+                <div>
                   <label htmlFor="global-delay" style={fieldLabel}>Global Surge Delay (Minutes)</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <input 
