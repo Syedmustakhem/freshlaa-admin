@@ -52,7 +52,7 @@ export default function AppConfig() {
       const res = await api.get("/admin/app-config");
       setConfig(res.data.data);
     } catch (err) {
-      showToast("Failed to load app configuration", "error");
+      showToast({ message: "Failed to load app configuration", type: "error" });
     }
     setLoading(false);
   };
@@ -61,9 +61,9 @@ export default function AppConfig() {
     setSaving(true);
     try {
       await api.put("/admin/app-config", config);
-      showToast("App configuration updated successfully!", "success");
+      showToast({ message: "App configuration updated successfully!", type: "success" });
     } catch (err) {
-      showToast("Failed to update configuration", "error");
+      showToast({ message: "Failed to update configuration", type: "error" });
     }
     setSaving(false);
   };
