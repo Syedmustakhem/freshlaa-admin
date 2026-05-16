@@ -37,6 +37,7 @@ import EventsEditor from "./pages/EventsEditor";
 import SupportTickets from "./pages/SupportTickets";
 import SupportTicketDetails from "./pages/SupportTicketDetails";
 import ServiceableAreas from "./pages/ServiceableAreas";
+import AppConfig from "./pages/AppConfig";
 
 export default function App() {
   return (
@@ -79,6 +80,7 @@ export default function App() {
           <Route path="/support" element={<ProtectedRoute><SupportTickets /></ProtectedRoute>} />
           <Route path="/support/ticket/:id" element={<ProtectedRoute><SupportTicketDetails /></ProtectedRoute>} />
           <Route path="/serviceable-areas" element={<ProtectedRoute><ServiceableAreas /></ProtectedRoute>} />
+          <Route path="/app-config" element={<ProtectedRoute><AppConfig /></ProtectedRoute>} />
         </Routes>
       </ToastProvider>
     </BrowserRouter>
