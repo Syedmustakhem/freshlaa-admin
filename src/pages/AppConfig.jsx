@@ -119,8 +119,10 @@ export default function AppConfig() {
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <div>
-                  <label style={fieldLabel}>Splash Type</label>
+                  <label htmlFor="splash-type" style={fieldLabel}>Splash Type</label>
                   <select 
+                    id="splash-type"
+                    name="splash-type"
                     style={fieldInput} 
                     value={config.splash?.type || "image"}
                     onChange={(e) => updateSplash("type", e.target.value)}
@@ -132,8 +134,10 @@ export default function AppConfig() {
 
                 {config.splash?.type === "image" ? (
                   <div>
-                    <label style={fieldLabel}>Image URL</label>
+                    <label htmlFor="splash-image-url" style={fieldLabel}>Image URL</label>
                     <input 
+                      id="splash-image-url"
+                      name="splash-image-url"
                       style={fieldInput}
                       value={config.splash?.image_url || ""}
                       onChange={(e) => updateSplash("image_url", e.target.value)}
@@ -142,8 +146,10 @@ export default function AppConfig() {
                   </div>
                 ) : (
                   <div>
-                    <label style={fieldLabel}>Lottie URL</label>
+                    <label htmlFor="splash-lottie-url" style={fieldLabel}>Lottie URL</label>
                     <input 
+                      id="splash-lottie-url"
+                      name="splash-lottie-url"
                       style={fieldInput}
                       value={config.splash?.lottie_url || ""}
                       onChange={(e) => updateSplash("lottie_url", e.target.value)}
@@ -153,8 +159,10 @@ export default function AppConfig() {
                 )}
 
                 <div>
-                  <label style={fieldLabel}>Duration (ms)</label>
+                  <label htmlFor="splash-duration" style={fieldLabel}>Duration (ms)</label>
                   <input 
+                    id="splash-duration"
+                    name="splash-duration"
                     type="number"
                     style={fieldInput}
                     value={config.splash?.duration_ms || 1500}
@@ -205,32 +213,40 @@ export default function AppConfig() {
             
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
-                <label style={fieldLabel}>Min Android Version</label>
+                <label htmlFor="min-android" style={fieldLabel}>Min Android Version</label>
                 <input 
+                  id="min-android"
+                  name="min-android"
                   style={fieldInput}
                   value={config.min_version_android || ""}
                   onChange={(e) => updateField("min_version_android", e.target.value)}
                 />
               </div>
               <div>
-                <label style={fieldLabel}>Latest Android Version</label>
+                <label htmlFor="latest-android" style={fieldLabel}>Latest Android Version</label>
                 <input 
+                  id="latest-android"
+                  name="latest-android"
                   style={fieldInput}
                   value={config.latest_version_android || ""}
                   onChange={(e) => updateField("latest_version_android", e.target.value)}
                 />
               </div>
               <div>
-                <label style={fieldLabel}>Min iOS Version</label>
+                <label htmlFor="min-ios" style={fieldLabel}>Min iOS Version</label>
                 <input 
+                  id="min-ios"
+                  name="min-ios"
                   style={fieldInput}
                   value={config.min_version_ios || ""}
                   onChange={(e) => updateField("min_version_ios", e.target.value)}
                 />
               </div>
               <div>
-                <label style={fieldLabel}>Force Update Message</label>
+                <label htmlFor="force-update-msg" style={fieldLabel}>Force Update Message</label>
                 <textarea 
+                  id="force-update-msg"
+                  name="force-update-msg"
                   style={{ ...fieldInput, height: 80, resize: "none" }}
                   value={config.force_update_message || ""}
                   onChange={(e) => updateField("force_update_message", e.target.value)}
@@ -287,8 +303,10 @@ export default function AppConfig() {
               </div>
 
               <div>
-                <label style={fieldLabel}>Maintenance Message</label>
+                <label htmlFor="maintenance-msg" style={fieldLabel}>Maintenance Message</label>
                 <textarea 
+                  id="maintenance-msg"
+                  name="maintenance-msg"
                   style={{ ...fieldInput, height: 100, resize: "none" }}
                   value={config.maintenance_message || ""}
                   onChange={(e) => updateField("maintenance_message", e.target.value)}
