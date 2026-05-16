@@ -379,23 +379,65 @@ export default function AppConfig() {
             </div>
           </section>
 
-          {/* MAINTENANCE */}
+          {/* SYSTEM STATUS & THEME */}
           <section style={darkCard}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
               <ShieldAlert color="#ef4444" size={24} />
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Maintenance</h3>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>System Status</h3>
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* App Active Status */}
               <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "space-between",
-                padding: "12px 16px",
-                background: config.maintenance_mode ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.03)",
-                borderRadius: 12,
-                border: `1px solid ${config.maintenance_mode ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.06)"}`,
-                transition: "all 0.3s"
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)"
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>App Active Status</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>General availability of the service</div>
+                </div>
+                <div 
+                  onClick={() => updateField("is_active", !config.is_active)}
+                  style={{
+                    width: 48, height: 24, background: config.is_active ? "#16a34a" : "#1e293b",
+                    borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s"
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                    position: "absolute", top: 3, left: config.is_active ? 27 : 3, transition: "all 0.3s"
+                  }} />
+                </div>
+              </div>
+
+              {/* Night Mode Theme */}
+              <div style={{ 
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)"
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>Force Night Mode</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>Force dark theme across mobile app</div>
+                </div>
+                <div 
+                  onClick={() => updateField("night_mode", !config.night_mode)}
+                  style={{
+                    width: 48, height: 24, background: config.night_mode ? "#8b5cf6" : "#1e293b",
+                    borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s"
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                    position: "absolute", top: 3, left: config.night_mode ? 27 : 3, transition: "all 0.3s"
+                  }} />
+                </div>
+              </div>
+
+              {/* Maintenance Mode */}
+              <div style={{ 
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 16px", background: config.maintenance_mode ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.03)",
+                borderRadius: 12, border: `1px solid ${config.maintenance_mode ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.06)"}`, transition: "all 0.3s"
               }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>Maintenance Mode</div>
@@ -404,53 +446,27 @@ export default function AppConfig() {
                 <div 
                   onClick={() => updateField("maintenance_mode", !config.maintenance_mode)}
                   style={{
-                    width: 48,
-                    height: 24,
-                    background: config.maintenance_mode ? "#ef4444" : "#1e293b",
-                    borderRadius: 12,
-                    position: "relative",
-                    cursor: "pointer",
-                    transition: "all 0.3s"
+                    width: 48, height: 24, background: config.maintenance_mode ? "#ef4444" : "#1e293b",
+                    borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s"
                   }}
                 >
                   <div style={{
-                    width: 18,
-                    height: 18,
-                    background: "#fff",
-                    borderRadius: "50%",
-                    position: "absolute",
-                    top: 3,
-                    left: config.maintenance_mode ? 27 : 3,
-                    transition: "all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)"
+                    width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                    position: "absolute", top: 3, left: config.maintenance_mode ? 27 : 3, transition: "all 0.3s"
                   }} />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="maintenance-msg" style={fieldLabel}>Maintenance Message</label>
+                <label htmlFor="maintenance-msg" style={fieldLabel}>System Message</label>
                 <textarea 
                   id="maintenance-msg"
                   name="maintenance-msg"
-                  style={{ ...fieldInput, height: 100, resize: "none" }}
+                  style={{ ...fieldInput, height: 80, resize: "none" }}
                   value={config.maintenance_message || ""}
                   onChange={(e) => updateField("maintenance_message", e.target.value)}
                 />
               </div>
-
-              {config.maintenance_mode && (
-                <div style={{ 
-                  padding: 12, 
-                  background: "rgba(239,68,68,0.1)", 
-                  borderRadius: 10, 
-                  border: "1px solid rgba(239,68,68,0.2)",
-                  color: "#f87171",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  textAlign: "center"
-                }}>
-                  ⚠️ Warning: App is currently inaccessible to users.
-                </div>
-              )}
             </div>
           </section>
         </div>
