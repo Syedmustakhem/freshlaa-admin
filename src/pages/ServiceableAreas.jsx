@@ -67,6 +67,8 @@ export default function ServiceableAreas() {
     pincode: "",
     areaName: "",
     isActive: true,
+    isInstantAvailable: true,
+    estimatedTime: "",
     notes: ""
   });
 
@@ -100,7 +102,7 @@ export default function ServiceableAreas() {
       const res = await api.post("/serviceability/admin/save", newArea, { headers: authHeader() });
       if (res.data.success) {
         showToast(`Area ${newArea.pincode} successfully updated!`);
-        setNewArea({ pincode: "", areaName: "", isActive: true, notes: "" });
+        setNewArea({ pincode: "", areaName: "", isActive: true, isInstantAvailable: true, estimatedTime: "", notes: "" });
         fetchAreas();
       }
     } catch (err) {
@@ -110,18 +112,18 @@ export default function ServiceableAreas() {
     }
   };
 
-  const toggleStatus = async (area) => {
+  const toggleStatus = async (area, field) => {
     try {
       const res = await api.post("/serviceability/admin/save", 
-        { ...area, isActive: !area.isActive }, 
+        { ...area, [field]: !area[field] }, 
         { headers: authHeader() }
       );
       if (res.data.success) {
-        showToast("Service status updated");
+        showToast(`${field === "isActive" ? "Service" : "Instant delivery"} status updated`);
         fetchAreas();
       }
     } catch (err) {
-      showToast("Toggle failed", "error");
+      showToast("Update failed", "error");
     }
   };
 
@@ -190,6 +192,26 @@ export default function ServiceableAreas() {
                     placeholder="e.g. Whitefield"
                   />
                 </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <Label>Custom ETA (Optional)</Label>
+                    <Input 
+                      value={newArea.estimatedTime} 
+                      onChange={e => setNewArea({ ...newArea, estimatedTime: e.target.value })} 
+                      placeholder="e.g. 20 mins"
+                    />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <Label>Instant Del.</Label>
+                    <button 
+                      type="button" 
+                      onClick={() => setNewArea({ ...newArea, isInstantAvailable: !newArea.isInstantAvailable })}
+                      style={{ width: 44, height: 22, borderRadius: 11, background: newArea.isInstantAvailable ? "#8b5cf6" : "#cbd5e1", position: "relative", border: "none", cursor: "pointer", transition: "all .3s" }}
+                    >
+                      <div style={{ position: "absolute", top: 2, left: newArea.isInstantAvailable ? 24 : 2, width: 18, height: 18, background: "#fff", borderRadius: "50%", transition: "all .3s" }} />
+                    </button>
+                  </div>
+                </div>
                 <div>
                   <Label>Delivery Notes</Label>
                   <Textarea 
@@ -240,8 +262,9 @@ export default function ServiceableAreas() {
                     <thead>
                       <tr style={{ borderBottom: "2px solid #f1f5f9" }}>
                         <th style={{ textAlign: "left", padding: "12px 15px", fontSize: 11, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase" }}>Pincode</th>
-                        <th style={{ textAlign: "left", padding: "12px 15px", fontSize: 11, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase" }}>Location</th>
+                        <th style={{ textAlign: "left", padding: "12px 15px", fontSize: 11, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase" }}>Location & ETA</th>
                         <th style={{ textAlign: "center", padding: "12px 15px", fontSize: 11, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase" }}>Status</th>
+                        <th style={{ textAlign: "center", padding: "12px 15px", fontSize: 11, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase" }}>Instant</th>
                         <th style={{ textAlign: "right", padding: "12px 15px", fontSize: 11, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase" }}>Action</th>
                       </tr>
                     </thead>
@@ -251,15 +274,23 @@ export default function ServiceableAreas() {
                           <td style={{ padding: "18px 15px", fontWeight: 900, fontSize: 15, color: "#0f172a" }}>{a.pincode}</td>
                           <td style={{ padding: "18px 15px" }}>
                             <div style={{ fontWeight: 700, fontSize: 14, color: "#334155" }}>{a.areaName || "Not Specified"}</div>
-                            {a.notes && <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>{a.notes}</div>}
+                            <div style={{ fontSize: 12, color: "#6366f1", fontWeight: 700, marginTop: 2 }}>{a.estimatedTime ? `⏱ Override: ${a.estimatedTime}` : "🌐 System Logic"}</div>
+                            {a.notes && <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>{a.notes}</div>}
                           </td>
                           <td style={{ padding: "18px 15px", textAlign: "center" }}>
                             <div 
-                              onClick={() => toggleStatus(a)}
-                              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 20, background: a.isActive ? "#dcfce7" : "#fee2e2", color: a.isActive ? "#16a34a" : "#dc2626", cursor: "pointer", fontWeight: 800, fontSize: 10 }}
+                              onClick={() => toggleStatus(a, "isActive")}
+                              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 20, background: a.isActive ? "#dcfce7" : "#fee2e2", color: a.isActive ? "#16a34a" : "#dc2626", cursor: "pointer", fontWeight: 800, fontSize: 10 }}
                             >
-                              {a.isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                              {a.isActive ? "SERVICEABLE" : "RESTRICTED"}
+                              {a.isActive ? "ACTIVE" : "OFF"}
+                            </div>
+                          </td>
+                          <td style={{ padding: "18px 15px", textAlign: "center" }}>
+                            <div 
+                              onClick={() => toggleStatus(a, "isInstantAvailable")}
+                              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 20, background: a.isInstantAvailable ? "#f3e8ff" : "#f1f5f9", color: a.isInstantAvailable ? "#8b5cf6" : "#64748b", cursor: "pointer", fontWeight: 800, fontSize: 10 }}
+                            >
+                              {a.isInstantAvailable ? "INSTANT" : "SLOTTED"}
                             </div>
                           </td>
                           <td style={{ padding: "18px 15px", textAlign: "right" }}>

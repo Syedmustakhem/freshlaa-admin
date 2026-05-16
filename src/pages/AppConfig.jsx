@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import AdminLayout from "../components/AdminLayout";
-import { Save, RefreshCw, Smartphone, Monitor, ShieldAlert, Sparkles } from "lucide-react";
+import { Save, RefreshCw, Smartphone, Monitor, ShieldAlert, Sparkles, Timer, Plus, Trash2 } from "lucide-react";
 import api from "../services/api";
 import { useToast } from "../context/ToastContext";
 
@@ -77,6 +77,29 @@ export default function AppConfig() {
       ...prev,
       splash: { ...prev.splash, [key]: value },
     }));
+  };
+
+  const updateDelivery = (key, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      deliveryTiming: { ...prev.deliveryTiming, [key]: value },
+    }));
+  };
+
+  const addDistanceRule = () => {
+    const currentRules = config.deliveryTiming?.distanceRules || [];
+    updateDelivery("distanceRules", [...currentRules, { maxKm: 5, eta: "30 mins" }]);
+  };
+
+  const removeDistanceRule = (index) => {
+    const currentRules = config.deliveryTiming?.distanceRules || [];
+    updateDelivery("distanceRules", currentRules.filter((_, i) => i !== index));
+  };
+
+  const updateDistanceRule = (index, key, value) => {
+    const currentRules = [...(config.deliveryTiming?.distanceRules || [])];
+    currentRules[index] = { ...currentRules[index], [key]: value };
+    updateDelivery("distanceRules", currentRules);
   };
 
   if (loading) {
@@ -251,6 +274,93 @@ export default function AppConfig() {
                   value={config.force_update_message || ""}
                   onChange={(e) => updateField("force_update_message", e.target.value)}
                 />
+              </div>
+            </div>
+          </section>
+
+          {/* DELIVERY TIMING */}
+          <section style={{ ...darkCard, gridColumn: "1 / -1" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+              <Timer color="#8b5cf6" size={24} />
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Delivery Timing & Surge</h3>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div>
+                  <label htmlFor="base-eta" style={fieldLabel}>Global Base ETA</label>
+                  <input 
+                    id="base-eta"
+                    name="base-eta"
+                    style={fieldInput}
+                    value={config.deliveryTiming?.baseEtaRange || ""}
+                    onChange={(e) => updateDelivery("baseEtaRange", e.target.value)}
+                    placeholder="e.g. 30-40 mins"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="global-delay" style={fieldLabel}>Global Surge Delay (Minutes)</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <input 
+                      id="global-delay"
+                      name="global-delay"
+                      type="number"
+                      style={{ ...fieldInput, flex: 1 }}
+                      value={config.deliveryTiming?.globalDelayMins || 0}
+                      onChange={(e) => updateDelivery("globalDelayMins", Number(e.target.value))}
+                    />
+                    {config.deliveryTiming?.globalDelayMins > 0 && (
+                      <span style={{ fontSize: 12, color: "#ef4444", fontWeight: 700 }}>⚠️ +{config.deliveryTiming.globalDelayMins}m Surge Applied</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <label style={fieldLabel}>Distance Rules (Algorithm)</label>
+                  <button 
+                    onClick={addDistanceRule}
+                    style={{ background: "rgba(139,92,246,0.1)", color: "#8b5cf6", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 6, padding: "4px 8px", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <Plus size={14} /> Add Rule
+                  </button>
+                </div>
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {(config.deliveryTiming?.distanceRules || []).map((rule, idx) => (
+                    <div key={idx} style={{ display: "flex", gap: 10, alignItems: "center", background: "rgba(255,255,255,0.02)", padding: 8, borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}>Max Distance (km)</div>
+                        <input 
+                          type="number"
+                          style={{ ...fieldInput, padding: "6px 10px", fontSize: 13 }}
+                          value={rule.maxKm}
+                          onChange={(e) => updateDistanceRule(idx, "maxKm", Number(e.target.value))}
+                        />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}>ETA String</div>
+                        <input 
+                          style={{ ...fieldInput, padding: "6px 10px", fontSize: 13 }}
+                          value={rule.eta}
+                          onChange={(e) => updateDistanceRule(idx, "eta", e.target.value)}
+                        />
+                      </div>
+                      <button 
+                        onClick={() => removeDistanceRule(idx)}
+                        style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", marginTop: 15 }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  {(!config.deliveryTiming?.distanceRules || config.deliveryTiming.distanceRules.length === 0) && (
+                    <div style={{ textAlign: "center", padding: "20px", color: "#475569", fontSize: 13, background: "rgba(0,0,0,0.1)", borderRadius: 12, border: "1px dashed rgba(255,255,255,0.1)" }}>
+                      No distance rules set. App will use Global Base ETA.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </section>
