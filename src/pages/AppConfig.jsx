@@ -84,6 +84,16 @@ export default function AppConfig() {
     }));
   };
 
+  const updateFeature = (key, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      features: {
+        ...prev.features,
+        [key]: value,
+      },
+    }));
+  };
+
   const updateDelivery = (key, value) => {
     setConfig((prev) => ({
       ...prev,
@@ -228,6 +238,85 @@ export default function AppConfig() {
                     <p style={{ fontSize: 12 }}>Enter a URL to preview</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </section>
+
+          {/* DYNAMIC FEATURE FLAGS */}
+          <section style={darkCard}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+              <Sparkles color="#eab308" size={24} />
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Dynamic Feature Flags</h3>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Checkout Intercept */}
+              <div style={{ 
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)"
+              }}>
+                <div style={{ flex: 1, paddingRight: 10 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>Forgot Something Suggestions</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>Show cart suggestions intercept drawer on Place Order</div>
+                </div>
+                <div 
+                  onClick={() => updateFeature("checkoutInterceptEnabled", !config.features?.checkoutInterceptEnabled)}
+                  style={{
+                    width: 48, height: 24, background: config.features?.checkoutInterceptEnabled ? "#eab308" : "#1e293b",
+                    borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s", flexShrink: 0
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                    position: "absolute", top: 3, left: config.features?.checkoutInterceptEnabled ? 27 : 3, transition: "all 0.3s"
+                  }} />
+                </div>
+              </div>
+
+              {/* Document Print Service */}
+              <div style={{ 
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)"
+              }}>
+                <div style={{ flex: 1, paddingRight: 10 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>10-Min Document Print Service</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>Enable document selection, upload & print delivery portal</div>
+                </div>
+                <div 
+                  onClick={() => updateFeature("printServiceEnabled", !config.features?.printServiceEnabled)}
+                  style={{
+                    width: 48, height: 24, background: config.features?.printServiceEnabled ? "#4f46e5" : "#1e293b",
+                    borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s", flexShrink: 0
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                    position: "absolute", top: 3, left: config.features?.printServiceEnabled ? 27 : 3, transition: "all 0.3s"
+                  }} />
+                </div>
+              </div>
+
+              {/* Pharmacy Uploader */}
+              <div style={{ 
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)"
+              }}>
+                <div style={{ flex: 1, paddingRight: 10 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>15-Min Pharmacy & OTC Service</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>Enable prescription upload & wellness fulfillment banner</div>
+                </div>
+                <div 
+                  onClick={() => updateFeature("pharmacyServiceEnabled", !config.features?.pharmacyServiceEnabled)}
+                  style={{
+                    width: 48, height: 24, background: config.features?.pharmacyServiceEnabled ? "#0d9488" : "#1e293b",
+                    borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s", flexShrink: 0
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                    position: "absolute", top: 3, left: config.features?.pharmacyServiceEnabled ? 27 : 3, transition: "all 0.3s"
+                  }} />
+                </div>
               </div>
             </div>
           </section>

@@ -221,6 +221,30 @@ export default function OrderDetails() {
                     ))}
                   </div>
                 )}
+                {item.metadata?.fileUrl && (
+                  <div style={{ marginTop: 8 }}>
+                    <a
+                      href={item.metadata.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 12px",
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#fff",
+                        backgroundColor: "#6366f1",
+                        textDecoration: "none",
+                        boxShadow: "0 2px 4px rgba(99, 102, 241, 0.2)",
+                      }}
+                    >
+                      📎 View Uploaded Attachment
+                    </a>
+                  </div>
+                )}
               </div>
               <div style={{ fontWeight: 700, color: "#111827", fontSize: 15, whiteSpace: "nowrap" }}>
                 ₹{(item.qty * item.price).toLocaleString("en-IN")}
