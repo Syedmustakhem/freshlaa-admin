@@ -40,6 +40,7 @@ export default function AppConfig() {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [notifyUsers, setNotifyUsers] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -60,8 +61,12 @@ export default function AppConfig() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put("/admin/app-config", config);
+      await api.put("/admin/app-config", {
+        ...config,
+        notifyDeliveryTimingChange: notifyUsers
+      });
       showToast({ message: "App configuration updated successfully!", type: "success" });
+      setNotifyUsers(false);
     } catch (err) {
       showToast({ message: "Failed to update configuration", type: "error" });
     }
@@ -326,6 +331,29 @@ export default function AppConfig() {
                     {config.deliveryTiming?.globalDelayMins > 0 && (
                       <span style={{ fontSize: 12, color: "#ef4444", fontWeight: 700 }}>⚠️ +{config.deliveryTiming.globalDelayMins}m Surge Applied</span>
                     )}
+                  </div>
+                </div>
+
+                <div style={{ 
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)",
+                  marginTop: 10
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Notify Users on Timing Update</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>Send a push notification to all users about the new delivery timeline</div>
+                  </div>
+                  <div 
+                    onClick={() => setNotifyUsers(!notifyUsers)}
+                    style={{
+                      width: 48, height: 24, background: notifyUsers ? "#8b5cf6" : "#1e293b",
+                      borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s"
+                    }}
+                  >
+                    <div style={{
+                      width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                      position: "absolute", top: 3, left: notifyUsers ? 27 : 3, transition: "all 0.3s"
+                    }} />
                   </div>
                 </div>
               </div>
