@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Store, Package, Layers,
   ShoppingCart, Users, Image, Home, Sparkles, Settings,
-  Filter, Megaphone, Ticket, Search, Bell, LifeBuoy, MapPin
+  Filter, Megaphone, Ticket, Search, Bell, LifeBuoy, MapPin, Gift
 } from "lucide-react";
 import { Star } from "lucide-react";
 
@@ -30,6 +30,7 @@ export default function Sidebar() {
         <NavItem to="/campaigns" icon={<Megaphone size={18} />} label="Campaigns" />
         <NavItem to="/reviews" icon={<Star size={18} />} label="Reviews" />
         <NavItem to="/app-config" icon={<Settings size={18} />} label="App Config" />
+        <NavItem to="/popup-modal" icon={<Gift size={18} />} label="Popup Modals" />
         <NavItem to="/events-editor" icon={<span>📅</span>} label="Events Editor" />
 
         {/* ✅ NEW */}
