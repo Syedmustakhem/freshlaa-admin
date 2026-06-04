@@ -12,6 +12,13 @@ export default function UserDetails() {
   const [codStatus, setCodStatus] = useState(null);
   const [codLoading, setCodLoading] = useState(false);
 
+  // Loyalty Coin States
+  const [transactions, setTransactions] = useState([]);
+  const [txLoading, setTxLoading] = useState(false);
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [adjustReason, setAdjustReason] = useState("");
+  const [adjusting, setAdjusting] = useState(false);
+
   const headers = {
     Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
   };
@@ -33,6 +40,44 @@ export default function UserDetails() {
       setCodStatus(res.data.codStats);
     } catch {
       console.log("COD status fetch failed");
+    }
+  };
+
+  const fetchTransactions = async () => {
+    setTxLoading(true);
+    try {
+      const res = await api.get(`/admin/users/${id}/coin-transactions`, { headers });
+      setTransactions(res.data.data);
+    } catch {
+      console.log("Failed to load coin transactions");
+    } finally {
+      setTxLoading(false);
+    }
+  };
+
+  const handleAdjustCoins = async (e) => {
+    e.preventDefault();
+    if (!adjustAmount || isNaN(adjustAmount)) {
+      alert("Please enter a valid coin amount");
+      return;
+    }
+    setAdjusting(true);
+    try {
+      await api.post(`/admin/users/${id}/adjust-coins`, {
+        amount: Number(adjustAmount),
+        description: adjustReason || "Manual adjustment by Admin"
+      }, { headers });
+      
+      alert("Coins adjusted successfully!");
+      setAdjustAmount("");
+      setAdjustReason("");
+      
+      fetchUser();
+      fetchTransactions();
+    } catch {
+      alert("Failed to adjust coins");
+    } finally {
+      setAdjusting(false);
     }
   };
 
@@ -66,6 +111,7 @@ export default function UserDetails() {
   useEffect(() => {
     fetchUser();
     fetchCodStatus();
+    fetchTransactions();
   }, []);
 
   if (loading) {

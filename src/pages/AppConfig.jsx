@@ -372,6 +372,105 @@ export default function AppConfig() {
             </div>
           </section>
 
+          {/* LOYALTY COIN SYSTEM CONFIGURATION */}
+          <section style={darkCard}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+              <Sparkles color="#fbbf24" size={24} />
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Loyalty Coin Settings</h3>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Enabled Switch */}
+              <div style={{ 
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)"
+              }}>
+                <div style={{ flex: 1, paddingRight: 10 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>Enable Loyalty Coins</div>
+                  <div style={{ fontSize: 12, color: "#64748b" }}>Activate loyalty rewards and redemption at checkout</div>
+                </div>
+                <div 
+                  onClick={() => updateField("loyaltyCoins", { 
+                    ...(config.loyaltyCoins || {}), 
+                    enabled: !(config.loyaltyCoins?.enabled) 
+                  })}
+                  style={{
+                    width: 48, height: 24, background: config.loyaltyCoins?.enabled ? "#fbbf24" : "#1e293b",
+                    borderRadius: 12, position: "relative", cursor: "pointer", transition: "all 0.3s", flexShrink: 0
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, background: "#fff", borderRadius: "50%",
+                    position: "absolute", top: 3, left: config.loyaltyCoins?.enabled ? 27 : 3, transition: "all 0.3s"
+                  }} />
+                </div>
+              </div>
+
+              {config.loyaltyCoins?.enabled && (
+                <>
+                  <div>
+                    <label htmlFor="coins-earn" style={fieldLabel}>Coins Earned Per ₹100 Spent</label>
+                    <input 
+                      id="coins-earn"
+                      name="coins-earn"
+                      type="number"
+                      style={fieldInput}
+                      value={config.loyaltyCoins?.coinsPer100Spent ?? 10}
+                      onChange={(e) => updateField("loyaltyCoins", { 
+                        ...(config.loyaltyCoins || {}), 
+                        coinsPer100Spent: Number(e.target.value) 
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="coins-burn" style={fieldLabel}>Coins Required Per ₹1 Off (e.g. 5 coins = ₹1)</label>
+                    <input 
+                      id="coins-burn"
+                      name="coins-burn"
+                      type="number"
+                      style={fieldInput}
+                      value={config.loyaltyCoins?.coinsPerRupeeDiscount ?? 5}
+                      onChange={(e) => updateField("loyaltyCoins", { 
+                        ...(config.loyaltyCoins || {}), 
+                        coinsPerRupeeDiscount: Number(e.target.value) 
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="coins-min-val" style={fieldLabel}>Minimum Order Value To Earn Coins (₹)</label>
+                    <input 
+                      id="coins-min-val"
+                      name="coins-min-val"
+                      type="number"
+                      style={fieldInput}
+                      value={config.loyaltyCoins?.minOrderValueForCoins ?? 100}
+                      onChange={(e) => updateField("loyaltyCoins", { 
+                        ...(config.loyaltyCoins || {}), 
+                        minOrderValueForCoins: Number(e.target.value) 
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="coins-max-pct" style={fieldLabel}>Max Redemption Discount Percentage (%)</label>
+                    <input 
+                      id="coins-max-pct"
+                      name="coins-max-pct"
+                      type="number"
+                      min="1"
+                      max="100"
+                      style={fieldInput}
+                      value={config.loyaltyCoins?.maxRedemptionPercentage ?? 50}
+                      onChange={(e) => updateField("loyaltyCoins", { 
+                        ...(config.loyaltyCoins || {}), 
+                        maxRedemptionPercentage: Number(e.target.value) 
+                      })}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
+
           {/* DELIVERY TIMING */}
           <section style={{ ...darkCard, gridColumn: "1 / -1" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
